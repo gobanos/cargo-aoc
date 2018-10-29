@@ -1,21 +1,20 @@
 extern crate proc_macro;
-#[macro_use]
-extern crate syn;
-#[macro_use]
 extern crate quote;
+extern crate syn;
+
+mod types;
+mod utils;
 
 use proc_macro::TokenStream;
-use syn::Data;
-use syn::DataStruct;
-use syn::Field;
-use syn::Fields;
-use syn::GenericArgument;
-use syn::ItemFn;
-use syn::PathArguments;
-use syn::Type;
-use syn::{DeriveInput, Meta};
-use syn::FnArg;
-use syn::ReturnType;
+use quote::quote;
+use std::cell::RefCell;
+use std::collections::HashMap;
+use syn::*;
+use types::*;
+
+thread_local! {
+    static AOC_RUNNER: RefCell<HashMap<Day, Runner>> = RefCell::new(HashMap::new());
+}
 
 #[proc_macro_derive(Runner, attributes(runner, runner_type))]
 pub fn aoc_runner_derive(input: TokenStream) -> TokenStream {
@@ -79,38 +78,38 @@ pub fn aoc_runner_derive(input: TokenStream) -> TokenStream {
 fn get_meta_items(attr: &syn::Attribute) -> Option<Vec<syn::NestedMeta>> {
     if attr.path.segments.len() == 1
         && (attr.path.segments[0].ident == "runner" || attr.path.segments[0].ident == "runner_type")
-        {
-            match attr.parse_meta() {
-                Ok(Meta::List(ref meta)) => Some(meta.nested.iter().cloned().collect()),
-                m => {
-                    // TODO: produce an error
-                    println!("FAILED TO INTERPRET : {:#?}", m);
-                    println!("{:#?}", attr);
-                    None
-                }
+    {
+        match attr.parse_meta() {
+            Ok(Meta::List(ref meta)) => Some(meta.nested.iter().cloned().collect()),
+            m => {
+                // TODO: produce an error
+                println!("FAILED TO INTERPRET : {:#?}", m);
+                println!("{:#?}", attr);
+                None
             }
-        } else {
+        }
+    } else {
         None
     }
 }
 
 fn find_field(data_struct: Data, field: &str) -> Option<Field> {
     if let Data::Struct(DataStruct {
-                            fields: Fields::Named(fields),
-                            ..
-                        }) = data_struct
-        {
-            fields
-                .named
-                .iter()
-                .find(|f| {
-                    if let Some(i) = &f.ident {
-                        i == field
-                    } else {
-                        false
-                    }
-                }).cloned()
-        } else {
+        fields: Fields::Named(fields),
+        ..
+    }) = data_struct
+    {
+        fields
+            .named
+            .iter()
+            .find(|f| {
+                if let Some(i) = &f.ident {
+                    i == field
+                } else {
+                    false
+                }
+            }).cloned()
+    } else {
         None
     }
 }
@@ -135,41 +134,95 @@ fn extract_type(field: Field) -> Option<Type> {
     }
 }
 
-#[cfg(feature = "nightly")]
 #[proc_macro_attribute]
 pub fn aoc(args: TokenStream, input: TokenStream) -> TokenStream {
-    let _metas = attrs::extract_meta(args);
+    let (day, part) = utils::extract_meta(args);
+    let part = part.expect("No part");
+    let input = parse_macro_input!(input as ItemFn);
+
+    let expanded = quote! {
+        #[aoc_step2(#day, #part)]
+        #input
+    };
+
+    TokenStream::from(expanded)
+}
+
+#[proc_macro_attribute]
+pub fn aoc_step2(args: TokenStream, input: TokenStream) -> TokenStream {
+    let (day, part) = utils::extract_meta(args);
+    let day = day.to_string().parse().unwrap();
+    let part = part.expect("missing part").to_string().parse().unwrap();
 
     let input = parse_macro_input!(input as ItemFn);
 
     let name = input.ident;
     let decl = input.decl;
-    let arg_decl = if let FnArg::Captured(a) = decl.inputs[0].clone() { a } else { panic!() };
+    let arg_decl = if let FnArg::Captured(a) = decl.inputs[0].clone() {
+        a
+    } else {
+        panic!()
+    };
     let arg = arg_decl.pat;
     let arg_t = arg_decl.ty;
-    let out_t = if let ReturnType::Type(_, p) = decl.output { p } else { panic!() };
+    let out_t = if let ReturnType::Type(_, p) = decl.output {
+        p
+    } else {
+        panic!()
+    };
     let body = input.block;
 
-    println!("{:?}", out_t);
+    let part_impl = AOC_RUNNER.with(|map| {
+        let mut map = map.borrow_mut();
+        let runner = map.entry(day).or_default();
 
-    let expanded = quote! {
-        pub use self::#name::runner as #name;
+        runner.with_solver(Solver::new(name.clone(), out_t.clone()), part)
+    });
 
-        #[allow(unused_imports)]
-        mod #name {
-            use super::*;
-            use aoc_runner::{ArcStr, Runner};
-            use std::marker::PhantomData;
+    let expanded = if let Some(generator) = part_impl.generator {
+        let gen_out_t = generator.out_t;
+        let gen_name = generator.name;
+        quote! {
+            pub use self::#name::runner as #name;
 
-            pub fn runner(#arg: #arg_t) -> #out_t {
-                #body
+            #[allow(unused_imports)]
+            mod #name {
+                use super::*;
+                use aoc_runner::{ArcStr, Runner};
+                use std::marker::PhantomData;
+
+                pub fn runner(#arg: #arg_t) -> #out_t {
+                    #body
+                }
+
+                #[derive(Runner)]
+                #[runner(runner, #gen_name)]
+                pub struct RunnerStruct {
+                    input: #gen_out_t,
+                    output: PhantomData<#out_t>,
+                }
             }
+        }
+    } else {
+        quote! {
+            pub use self::#name::runner as #name;
 
-            #[derive(Runner)]
-            #[runner(runner)]
-            pub struct RunnerStruct {
-                input: ArcStr,
-                output: PhantomData<#out_t>,
+            #[allow(unused_imports)]
+            mod #name {
+                use super::*;
+                use aoc_runner::{ArcStr, Runner};
+                use std::marker::PhantomData;
+
+                pub fn runner(#arg: #arg_t) -> #out_t {
+                    #body
+                }
+
+                #[derive(Runner)]
+                #[runner(runner)]
+                pub struct RunnerStruct {
+                    input: ArcStr,
+                    output: PhantomData<#out_t>,
+                }
             }
         }
     };
@@ -177,28 +230,34 @@ pub fn aoc(args: TokenStream, input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-#[cfg(feature = "nightly")]
 #[proc_macro_attribute]
 pub fn generator(args: TokenStream, input: TokenStream) -> TokenStream {
-    println!("ARGS: {:#?}", args);
-    println!("INPUT: {:#?}", input);
+    let (day, part) = utils::extract_meta(args);
+    let day = day.to_string().parse().unwrap();
+    let part = part.and_then(|p| p.to_string().parse().ok());
 
-    input
-}
+    let input = parse_macro_input!(input as ItemFn);
 
-#[cfg(feature = "nightly")]
-mod attrs {
-    use proc_macro::{Ident, TokenStream, TokenTree};
+    let input_cloned = input.clone();
 
-    pub fn extract_meta(args: TokenStream) -> (Ident, Ident) {
-        let mut idents = args.into_iter().filter_map(|a| {
-            if let TokenTree::Ident(i) = a {
-                Some(i)
-            } else {
-                None
-            }
-        });
+    let name = input.ident;
+    let decl = input.decl;
+    let out_t = if let ReturnType::Type(_, p) = decl.output {
+        p
+    } else {
+        panic!()
+    };
 
-        (idents.next().unwrap(), idents.next().unwrap())
-    }
+    AOC_RUNNER.with(|map| {
+        let mut map = map.borrow_mut();
+        let runner = map.entry(day).or_default();
+
+        runner.with_generator(Generator::new(name.clone(), out_t.clone()), part);
+    });
+
+    let expanded = quote! {
+        #input_cloned
+    };
+
+    TokenStream::from(expanded)
 }
