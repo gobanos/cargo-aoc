@@ -30,60 +30,60 @@ pub fn runner_impl(args: TokenStream, input: TokenStream) -> TokenStream {
     };
     let body = input.block;
 
-    let part_impl = AOC_RUNNER.with(|map| {
+    let expanded = AOC_RUNNER.with(|map| {
         let mut map = map.borrow_mut();
-        let runner = map.entry(day).or_default();
+        let runner = map.entry((day, part)).or_default();
 
-        runner.with_solver(Solver::new(name.clone(), out_t.clone()), part)
+        runner.with_solver(Solver::new(name.clone(), out_t.clone()));
+
+        if let Some(generator) = &runner.generator {
+            let gen_out_t = &generator.out_t;
+            let gen_name = &generator.name;
+            quote! {
+                pub use self::#name::runner as #name;
+
+                #[allow(unused_imports)]
+                mod #name {
+                    use super::*;
+                    use aoc_runner::{ArcStr, Runner};
+                    use std::marker::PhantomData;
+
+                    pub fn runner(#arg: #arg_t) -> #out_t {
+                        #body
+                    }
+
+                    #[derive(Runner)]
+                    #[runner(runner, #gen_name)]
+                    pub struct RunnerStruct {
+                        input: #gen_out_t,
+                        output: PhantomData<#out_t>,
+                    }
+                }
+            }
+        } else {
+            quote! {
+                pub use self::#name::runner as #name;
+
+                #[allow(unused_imports)]
+                mod #name {
+                    use super::*;
+                    use aoc_runner::{ArcStr, Runner};
+                    use std::marker::PhantomData;
+
+                    pub fn runner(#arg: #arg_t) -> #out_t {
+                        #body
+                    }
+
+                    #[derive(Runner)]
+                    #[runner(runner)]
+                    pub struct RunnerStruct {
+                        input: ArcStr,
+                        output: PhantomData<#out_t>,
+                    }
+                }
+            }
+        }
     });
-
-    let expanded = if let Some(generator) = part_impl.generator {
-        let gen_out_t = generator.out_t;
-        let gen_name = generator.name;
-        quote! {
-            pub use self::#name::runner as #name;
-
-            #[allow(unused_imports)]
-            mod #name {
-                use super::*;
-                use aoc_runner::{ArcStr, Runner};
-                use std::marker::PhantomData;
-
-                pub fn runner(#arg: #arg_t) -> #out_t {
-                    #body
-                }
-
-                #[derive(Runner)]
-                #[runner(runner, #gen_name)]
-                pub struct RunnerStruct {
-                    input: #gen_out_t,
-                    output: PhantomData<#out_t>,
-                }
-            }
-        }
-    } else {
-        quote! {
-            pub use self::#name::runner as #name;
-
-            #[allow(unused_imports)]
-            mod #name {
-                use super::*;
-                use aoc_runner::{ArcStr, Runner};
-                use std::marker::PhantomData;
-
-                pub fn runner(#arg: #arg_t) -> #out_t {
-                    #body
-                }
-
-                #[derive(Runner)]
-                #[runner(runner)]
-                pub struct RunnerStruct {
-                    input: ArcStr,
-                    output: PhantomData<#out_t>,
-                }
-            }
-        }
-    };
 
     TokenStream::from(expanded)
 }

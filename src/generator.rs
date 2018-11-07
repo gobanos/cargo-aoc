@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::*;
-use types::Generator;
+use types::{Generator, Part};
 use utils;
 use AOC_RUNNER;
 
@@ -26,9 +26,18 @@ pub fn generator_impl(args: TokenStream, input: TokenStream) -> TokenStream {
 
     AOC_RUNNER.with(|map| {
         let mut map = map.borrow_mut();
-        let runner = map.entry(day).or_default();
 
-        runner.with_generator(Generator::new(name.clone(), out_t.clone()), part);
+        let mut register = |p: Part| {
+            let runner = map.entry((day, p)).or_default();
+            runner.with_generator(Generator::new(name.clone(), out_t.clone()));
+        };
+
+        if let Some(p) = part {
+            register(p);
+        } else {
+            register(Part(1));
+            register(Part(2));
+        }
     });
 
     let expanded = quote! {

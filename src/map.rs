@@ -1,11 +1,9 @@
-use std::cell::Ref;
-use std::cell::RefCell;
-use std::cell::RefMut;
+use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashMap;
-use types::{Day, Runner};
+use types::{Day, Part, Runner};
 
 pub struct Map {
-    inner: RefCell<HashMap<Day, Runner>>,
+    inner: RefCell<HashMap<(Day, Part), Runner>>,
 }
 
 impl Map {
@@ -15,11 +13,11 @@ impl Map {
         }
     }
 
-    pub(crate) fn borrow(&self) -> Ref<HashMap<Day, Runner>> {
+    pub(crate) fn borrow(&self) -> Ref<HashMap<(Day, Part), Runner>> {
         self.inner.borrow()
     }
 
-    pub(crate) fn borrow_mut(&self) -> RefMut<HashMap<Day, Runner>> {
+    pub(crate) fn borrow_mut(&self) -> RefMut<HashMap<(Day, Part), Runner>> {
         self.inner.borrow_mut()
     }
 }
