@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use syn;
 
-#[derive(Hash, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
 pub(crate) enum Day {
     D1,
     D2,
@@ -97,7 +97,7 @@ impl Into<&'static str> for Day {
     }
 }
 
-#[derive(Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub(crate) enum Part {
     Part1,
     Part2,
@@ -124,7 +124,7 @@ impl FromStr for Part {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub(crate) struct Runner {
     part1: Option<PartBuilder>,
     part2: Option<PartBuilder>,
@@ -150,6 +150,7 @@ impl Runner {
     }
 }
 
+#[derive(Debug)]
 pub(crate) enum PartBuilder {
     WithGenerator(Generator),
     Complete(PartImpl),

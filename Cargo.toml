@@ -7,9 +7,8 @@ authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
 proc-macro = true
 
 [dependencies]
-syn = { version = "0.15.13", features = ["extra-traits"] }
-quote = "0.6.8"
-lazy_static = "1.1.0"
+syn = { version = "0.15.18", features = ["extra-traits"] }
+quote = "0.6.9"
 
 [features]
 default = ["syn/full"]
