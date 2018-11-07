@@ -14,50 +14,36 @@ pub fn aoc_runner_derive_impl(input: TokenStream) -> TokenStream {
 
     let name = ast.ident;
     let fn_runner = &attrs[0][0];
-    let result_type = find_field(ast.data, "output")
-        .and_then(extract_type)
-        .unwrap();
     let fn_generator = &attrs[0].get(1);
 
     // Build the output, possibly using quasi-quotation
-    let expanded = if let Some(fn_generator) = fn_generator {
+    let input = if let Some(fn_generator) = fn_generator {
         quote! {
-            impl Runner for #name {
-                type Result = #result_type;
-
-                fn gen(input: ArcStr) -> Self {
-                    #name {
-                        input: #fn_generator(input.as_ref()),
-                        output: PhantomData,
-                    }
-                }
-
-                fn run(&self) -> Self::Result {
-                    #fn_runner(self.input.as_ref())
-                }
-            }
+            input: #fn_generator(input.as_ref())
         }
     } else {
         quote! {
-            impl Runner for #name {
-                type Result = #result_type;
-
-                fn gen(input: ArcStr) -> Self {
-                    #name {
-                        input,
-                        output: PhantomData,
-                    }
-                }
-
-                fn run(&self) -> Self::Result {
-                    #fn_runner(self.input.as_ref())
-                }
-            }
+            input
         }
     };
 
     // Hand the output tokens back to the compiler
-    TokenStream::from(expanded)
+    TokenStream::from(
+        quote! {
+            impl Runner for #name {
+                fn gen(input: ArcStr) -> Self {
+                    #name {
+                        #input,
+                        output: PhantomData,
+                    }
+                }
+
+                fn run(&self) -> Box<std::fmt::Display> {
+                    Box::new( #fn_runner(self.input.as_ref()) )
+                }
+            }
+        }
+    )
 }
 
 fn get_meta_items(attr: &syn::Attribute) -> Option<Vec<syn::NestedMeta>> {
@@ -72,47 +58,6 @@ fn get_meta_items(attr: &syn::Attribute) -> Option<Vec<syn::NestedMeta>> {
                 println!("{:#?}", attr);
                 None
             }
-        }
-    } else {
-        None
-    }
-}
-
-fn find_field(data_struct: Data, field: &str) -> Option<Field> {
-    if let Data::Struct(DataStruct {
-        fields: Fields::Named(fields),
-        ..
-    }) = data_struct
-    {
-        fields
-            .named
-            .iter()
-            .find(|f| {
-                if let Some(i) = &f.ident {
-                    i == field
-                } else {
-                    false
-                }
-            }).cloned()
-    } else {
-        None
-    }
-}
-
-fn extract_type(field: Field) -> Option<Type> {
-    if let Type::Path(ty) = field.ty {
-        let seg = &ty.path.segments[0];
-
-        assert_eq!(seg.ident, "PhantomData");
-
-        if let PathArguments::AngleBracketed(arg) = &seg.arguments {
-            if let GenericArgument::Type(ty) = &arg.args[0] {
-                Some(ty.clone())
-            } else {
-                None
-            }
-        } else {
-            None
         }
     } else {
         None

@@ -6,8 +6,6 @@ use utils;
 use AOC_RUNNER;
 
 pub fn generator_impl(args: TokenStream, input: TokenStream) -> TokenStream {
-    println!("generator {:?}", args);
-
     let (day, part) = utils::extract_meta(args);
     let day = day.to_string().parse().unwrap();
     let part = part.and_then(|p| p.to_string().parse().ok());

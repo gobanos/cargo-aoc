@@ -6,8 +6,6 @@ use utils;
 use AOC_RUNNER;
 
 pub fn runner_impl(args: TokenStream, input: TokenStream) -> TokenStream {
-    println!("aoc_step2 {:?}", args);
-
     let (day, part) = utils::extract_meta(args);
     let day = day.to_string().parse().unwrap();
     let part = part.expect("missing part").to_string().parse().unwrap();
