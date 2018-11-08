@@ -61,12 +61,12 @@ pub fn runner_impl(args: TokenStream, input: TokenStream) -> TokenStream {
         #[allow(unused_imports)]
         mod #mod_name {
             use super::*;
-            use aoc_runner::{ArcStr, Runner, RunnerGen};
+            use aoc_runner::{ArcStr, Runner};
             use std::marker::PhantomData;
             use {Factory, #trait_name};
 
             impl #trait_name for Factory {
-                fn #mod_name(&self, input: ArcStr) -> Box<Runner> {
+                fn #mod_name(input: ArcStr) -> Box<Runner> {
                     Box::new( RunnerStruct::gen(input) )
                 }
             }

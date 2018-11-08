@@ -26,7 +26,7 @@ pub fn lib_impl(_input: TokenStream) -> TokenStream {
                 #previous_quote
 
                 pub trait #camel {
-                    fn #snake(&self, input: ArcStr) -> Box<Runner>;
+                    fn #snake(input: ArcStr) -> Box<Runner>;
                 }
             };
         }
