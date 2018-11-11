@@ -1,11 +1,11 @@
-use proc_macro::TokenStream;
+use proc_macro as pm;
 use quote::quote;
 use syn::*;
 use types::{Generator, Part};
 use utils;
 use AOC_RUNNER;
 
-pub fn generator_impl(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
     let (day, part) = utils::extract_meta(args);
     let day = day.to_string().parse().unwrap();
     let part = part.and_then(|p| p.to_string().parse().ok());
@@ -23,7 +23,7 @@ pub fn generator_impl(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     AOC_RUNNER.with(|map| {
-        let mut map = map.borrow_mut();
+        let mut map = map.borrow_mut().unwrap();
 
         let mut register = |p: Part| {
             let runner = map.entry((day, p)).or_default();
@@ -42,5 +42,5 @@ pub fn generator_impl(args: TokenStream, input: TokenStream) -> TokenStream {
         #input_cloned
     };
 
-    TokenStream::from(expanded)
+    pm::TokenStream::from(expanded)
 }

@@ -1,13 +1,13 @@
-use proc_macro::TokenStream;
+use proc_macro as pm;
 use quote::quote;
 use syn::*;
 use types::Solver;
 use utils;
-use AOC_RUNNER;
-use utils::to_snakecase;
 use utils::to_camelcase;
+use utils::to_snakecase;
+use AOC_RUNNER;
 
-pub fn runner_impl(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
     let (day, part) = utils::extract_meta(args);
     let day = day.to_string().parse().unwrap();
     let part = part.expect("missing part").to_string().parse().unwrap();
@@ -25,7 +25,7 @@ pub fn runner_impl(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     let def = AOC_RUNNER.with(|map| {
-        let mut map = map.borrow_mut();
+        let mut map = map.borrow_mut().unwrap();
         let runner = map.entry((day, part)).or_default();
 
         runner.with_solver(Solver::new(name.clone(), out_t.clone()));
@@ -55,7 +55,7 @@ pub fn runner_impl(args: TokenStream, input: TokenStream) -> TokenStream {
     let mod_name = to_snakecase(day, part);
     let trait_name = to_camelcase(day, part);
 
-    TokenStream::from(quote! {
+    pm::TokenStream::from(quote! {
         #original_fn
 
         #[allow(unused_imports)]

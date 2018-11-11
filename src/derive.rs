@@ -1,8 +1,8 @@
-use proc_macro::TokenStream;
+use proc_macro as pm;
 use quote::quote;
 use syn::*;
 
-pub fn aoc_runner_derive_impl(input: TokenStream) -> TokenStream {
+pub fn aoc_runner_derive_impl(input: pm::TokenStream) -> pm::TokenStream {
     // Parse the input tokens into a syntax tree
     let ast = parse_macro_input!(input as DeriveInput);
 
@@ -28,22 +28,20 @@ pub fn aoc_runner_derive_impl(input: TokenStream) -> TokenStream {
     };
 
     // Hand the output tokens back to the compiler
-    TokenStream::from(
-        quote! {
-            impl Runner for #name {
-                fn gen(input: ArcStr) -> Self {
-                    #name {
-                        #input,
-                        output: PhantomData,
-                    }
-                }
-
-                fn run(&self) -> Box<std::fmt::Display> {
-                    Box::new( #fn_runner(self.input.as_ref()) )
+    pm::TokenStream::from(quote! {
+        impl Runner for #name {
+            fn gen(input: ArcStr) -> Self {
+                #name {
+                    #input,
+                    output: PhantomData,
                 }
             }
+
+            fn run(&self) -> Box<std::fmt::Display> {
+                Box::new( #fn_runner(self.input.as_ref()) )
+            }
         }
-    )
+    })
 }
 
 fn get_meta_items(attr: &syn::Attribute) -> Option<Vec<syn::NestedMeta>> {
