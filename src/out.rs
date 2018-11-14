@@ -1,13 +1,14 @@
+use map::InnerMap;
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
+use std::cmp::Ordering;
+use std::error;
 use std::fs;
-use std::io::Write;
+use types::{Day, Part};
 use utils::to_camelcase;
 use utils::to_snakecase;
 use AOC_RUNNER;
-use map::InnerMap;
-use std::cell::Ref;
 
 #[derive(Debug)]
 struct LibInfos {
@@ -20,19 +21,35 @@ enum MainInfos {
     Standalone { year: u32 },
 }
 
+#[derive(Serialize, Deserialize, Eq, PartialEq)]
+struct DayPart {
+    day: Day,
+    part: Part,
+}
+
+impl PartialOrd for DayPart {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(&other))
+    }
+}
+
+impl Ord for DayPart {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.day.cmp(&other.day).then(self.part.cmp(&other.part))
+    }
+}
+
 pub fn lib_impl(input: pm::TokenStream) -> pm::TokenStream {
     let infos = parse_lib_infos(input).unwrap();
-    println!("{:?}", infos);
 
     AOC_RUNNER.with(|map| {
         let map = map.consume().unwrap();
-        fs::create_dir_all("target/aoc").unwrap();
-        let mut f = fs::File::create("target/aoc/test.txt").unwrap();
-        write!(f, "{:#?}", map).unwrap();
+
+        write_infos(&map).unwrap();
 
         let year = infos.year;
 
-        pm::TokenStream::from(headers(map, year))
+        pm::TokenStream::from(headers(&map, year))
     })
 }
 
@@ -41,15 +58,16 @@ pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
 
     AOC_RUNNER.with(|map| {
         let map = map.consume().unwrap();
-        fs::create_dir_all("target/aoc").unwrap();
-        let mut f = fs::File::create("target/aoc/test.txt").unwrap();
-        write!(f, "{:#?}", map).unwrap();
 
         let expanded = match infos {
-            MainInfos::Ref { lib } => body(Some(lib)),
+            MainInfos::Ref { lib } => {
+                let infos = read_infos().unwrap();
+                body(infos, Some(lib))
+            }
             MainInfos::Standalone { year } => {
-                let headers = headers(map, year);
-                let body = body(None);
+                let infos = write_infos(&map).unwrap();
+                let headers = headers(&map, year);
+                let body = body(infos, None);
 
                 quote! {
                     #headers
@@ -63,7 +81,7 @@ pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
     })
 }
 
-fn headers(map: Ref<InnerMap>, year: u32) -> pm2::TokenStream {
+fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
     let mut previous_quote = quote! {
         use aoc_runner::{Runner, ArcStr};
 
@@ -95,27 +113,84 @@ fn headers(map: Ref<InnerMap>, year: u32) -> pm2::TokenStream {
     }
 }
 
-fn body(lib: Option<pm2::Ident>) -> pm2::TokenStream {
+fn body(infos: Vec<DayPart>, lib: Option<pm2::Ident>) -> pm2::TokenStream {
+    let mut body = quote!{};
+
+    for dp in infos {
+        let identifier = to_snakecase(dp.day, dp.part);
+        let input = format!("../input/day{}", dp.day.0);
+        let pattern = format!(
+            "Day {} - Part {} : {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
+            dp.day.0, dp.part.0
+        );
+
+        body = quote! {
+            #body
+
+            {
+                use std::time::{Duration, Instant};
+                use aoc_runner::ArcStr;
+
+                let start_time = Instant::now();
+                let runner = Factory::#identifier(ArcStr::from(include_str!(#input)));
+                let inter_time = Instant::now();
+                let result = runner.run();
+                let final_time = Instant::now();
+                println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
+            }
+        }
+    }
+
     if let Some(lib) = lib {
         quote! {
             use #lib::*;
 
             fn main() {
                 println!("Advent of code {}", YEAR);
+
+                #body
             }
         }
     } else {
         quote! {
             fn main() {
-                println!("Hello world !");
+                println!("Advent of code {}", YEAR);
+
+                #body
             }
         }
     }
 }
 
-fn parse_lib_infos(infos: pm::TokenStream) -> Result<LibInfos, ()> {
-    println!("{:?}", infos);
+fn write_infos(map: &InnerMap) -> Result<Vec<DayPart>, Box<error::Error>> {
+    fs::create_dir_all("target/aoc")?;
+    let f = fs::File::create("target/aoc/completed.json")?;
 
+    let mut day_parts: Vec<_> = map
+        .iter()
+        .filter_map(|(&(day, part), runner)| {
+            if runner.solver.is_some() {
+                Some(DayPart { day, part })
+            } else {
+                None
+            }
+        }).collect();
+    day_parts.sort();
+
+    serde_json::to_writer_pretty(f, &day_parts)?;
+
+    Ok(day_parts)
+}
+
+fn read_infos() -> Result<Vec<DayPart>, Box<error::Error>> {
+    let f = fs::File::open("target/aoc/completed.json")?;
+
+    let infos = serde_json::from_reader(f)?;
+
+    Ok(infos)
+}
+
+fn parse_lib_infos(infos: pm::TokenStream) -> Result<LibInfos, ()> {
     let tokens: Vec<_> = infos.into_iter().collect();
 
     if let pm::TokenTree::Ident(i) = tokens.get(0).ok_or(())? {
@@ -146,8 +221,6 @@ fn parse_lib_infos(infos: pm::TokenStream) -> Result<LibInfos, ()> {
 }
 
 fn parse_main_infos(infos: pm::TokenStream) -> Result<MainInfos, ()> {
-    println!("{:?}", infos);
-
     let tokens: Vec<_> = infos.into_iter().collect();
 
     if let pm::TokenTree::Punct(p) = tokens.get(1).ok_or(())? {

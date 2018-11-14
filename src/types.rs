@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use syn;
 
-#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Serialize, Deserialize, Ord, PartialOrd)]
 pub(crate) struct Day(pub u8);
 
 impl FromStr for Day {
@@ -25,7 +25,7 @@ impl FromStr for Day {
     }
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Serialize, Deserialize, Ord, PartialOrd)]
 pub(crate) struct Part(pub u8);
 
 impl FromStr for Part {

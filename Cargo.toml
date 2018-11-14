@@ -10,6 +10,9 @@ proc-macro = true
 syn = { version = "0.15.19", features = ["extra-traits"] }
 quote = "0.6.10"
 proc-macro2 = "0.4.21"
+serde = "1.0.80"
+serde_derive = "1.0.80"
+serde_json = "1.0.33"
 
 [features]
 default = ["syn/full"]
