@@ -2,12 +2,9 @@ use map::InnerMap;
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
-use std::cmp::Ordering;
-use std::error;
-use std::fs;
+use std::{cmp::Ordering, error, fs};
 use types::{Day, Part};
-use utils::to_camelcase;
-use utils::to_snakecase;
+use utils::{to_camelcase, to_snakecase};
 use AOC_RUNNER;
 
 #[derive(Debug)]

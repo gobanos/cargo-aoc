@@ -2,9 +2,7 @@ use proc_macro as pm;
 use quote::quote;
 use syn::*;
 use types::Solver;
-use utils;
-use utils::to_camelcase;
-use utils::to_snakecase;
+use utils::{self, to_camelcase, to_snakecase};
 use AOC_RUNNER;
 
 pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
