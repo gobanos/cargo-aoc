@@ -79,41 +79,37 @@ pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
 }
 
 fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
-    let mut previous_quote = quote! {
-        use aoc_runner::{Runner, ArcStr};
+    let traits_impl: pm2::TokenStream = map
+        .keys()
+        .map(|&(d, p)| {
+            let snake = to_snakecase(d, p);
+            let camel = to_camelcase(d, p);
 
-        pub static YEAR : u32 = #year;
-
-        pub struct Factory();
-    };
-
-    for &(d, p) in map.keys() {
-        let snake = to_snakecase(d, p);
-        let camel = to_camelcase(d, p);
-
-        previous_quote = quote! {
-            #previous_quote
-
-            pub trait #camel {
-                fn #snake(input: ArcStr) -> Box<Runner>;
+            quote! {
+                pub trait #camel {
+                    fn #snake(input: ArcStr) -> Box<Runner>;
+                }
             }
-        };
-    }
+        }).collect();
 
     quote! {
         pub use aoc_factory::*;
 
         #[allow(unused)]
         mod aoc_factory {
-            #previous_quote
+            use aoc_runner::{Runner, ArcStr};
+
+            pub static YEAR : u32 = #year;
+
+            pub struct Factory();
+
+            #traits_impl
         }
     }
 }
 
 fn body(infos: Vec<DayPart>, lib: Option<pm2::Ident>) -> pm2::TokenStream {
-    let mut body = quote!{};
-
-    for dp in infos {
+    let body : pm2::TokenStream = infos.into_iter().map(|dp| {
         let identifier = to_snakecase(dp.day, dp.part);
         let input = format!("../input/day{}", dp.day.0);
         let pattern = format!(
@@ -121,9 +117,7 @@ fn body(infos: Vec<DayPart>, lib: Option<pm2::Ident>) -> pm2::TokenStream {
             dp.day.0, dp.part.0
         );
 
-        body = quote! {
-            #body
-
+        quote! {
             {
                 use std::time::{Duration, Instant};
                 use aoc_runner::ArcStr;
@@ -136,7 +130,7 @@ fn body(infos: Vec<DayPart>, lib: Option<pm2::Ident>) -> pm2::TokenStream {
                 println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
             }
         }
-    }
+    }).collect();
 
     if let Some(lib) = lib {
         quote! {

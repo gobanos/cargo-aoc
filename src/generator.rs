@@ -1,5 +1,4 @@
 use proc_macro as pm;
-use quote::quote;
 use syn::*;
 use types::{Generator, Part};
 use utils;
@@ -10,9 +9,9 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
     let day = day.to_string().parse().unwrap();
     let part = part.and_then(|p| p.to_string().parse().ok());
 
-    let input = parse_macro_input!(input as ItemFn);
-
     let input_cloned = input.clone();
+
+    let input = parse_macro_input!(input as ItemFn);
 
     let name = input.ident;
     let decl = input.decl;
@@ -38,9 +37,5 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
         }
     });
 
-    let expanded = quote! {
-        #input_cloned
-    };
-
-    pm::TokenStream::from(expanded)
+    input_cloned
 }
