@@ -1,0 +1,9 @@
+[package]
+name = "aoc-runner-internal"
+version = "0.1.0"
+authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
+
+[dependencies]
+serde = "1.0.80"
+serde_derive = "1.0.80"
+serde_json = "1.0.33"
