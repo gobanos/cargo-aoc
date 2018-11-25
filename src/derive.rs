@@ -6,11 +6,7 @@ pub fn aoc_runner_derive_impl(input: pm::TokenStream) -> pm::TokenStream {
     // Parse the input tokens into a syntax tree
     let ast = parse_macro_input!(input as DeriveInput);
 
-    let attrs = ast
-        .attrs
-        .iter()
-        .filter_map(get_meta_items)
-        .collect::<Vec<_>>();
+    let attrs: Vec<_> = ast.attrs.iter().filter_map(get_meta_items).collect();
 
     let name = ast.ident;
     let fn_runner = &attrs[0][0];

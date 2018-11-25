@@ -1,6 +1,7 @@
+use aoc_runner_internal::Day;
+use aoc_runner_internal::Part;
 use proc_macro as pm;
 use syn;
-use types::{Day, Part};
 
 pub(crate) fn extract_meta(args: pm::TokenStream) -> (syn::Ident, Option<syn::Ident>) {
     let mut idents = args.into_iter().filter_map(|a| {

@@ -1,9 +1,10 @@
+use aoc_runner_internal::DayPart;
+use aoc_runner_internal::DayParts;
 use map::InnerMap;
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
-use std::{cmp::Ordering, error, fs};
-use types::{Day, Part};
+use std::error;
 use utils::{to_camelcase, to_snakecase};
 use AOC_RUNNER;
 
@@ -16,24 +17,6 @@ struct LibInfos {
 enum MainInfos {
     Ref { lib: pm2::Ident },
     Standalone { year: u32 },
-}
-
-#[derive(Serialize, Deserialize, Eq, PartialEq)]
-struct DayPart {
-    day: Day,
-    part: Part,
-}
-
-impl PartialOrd for DayPart {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(&other))
-    }
-}
-
-impl Ord for DayPart {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.day.cmp(&other.day).then(self.part.cmp(&other.part))
-    }
 }
 
 pub fn lib_impl(input: pm::TokenStream) -> pm::TokenStream {
@@ -59,12 +42,12 @@ pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
         let expanded = match infos {
             MainInfos::Ref { lib } => {
                 let infos = read_infos().unwrap();
-                body(infos, Some(lib))
+                body(&infos, Some(lib))
             }
             MainInfos::Standalone { year } => {
                 let infos = write_infos(&map).unwrap();
                 let headers = headers(&map, year);
-                let body = body(infos, None);
+                let body = body(&infos, None);
 
                 quote! {
                     #headers
@@ -108,7 +91,7 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
     }
 }
 
-fn body(infos: Vec<DayPart>, lib: Option<pm2::Ident>) -> pm2::TokenStream {
+fn body(infos: &[DayPart], lib: Option<pm2::Ident>) -> pm2::TokenStream {
     let body : pm2::TokenStream = infos.into_iter().map(|dp| {
         let identifier = to_snakecase(dp.day, dp.part);
         let input = format!("../input/day{}", dp.day.0);
@@ -153,11 +136,8 @@ fn body(infos: Vec<DayPart>, lib: Option<pm2::Ident>) -> pm2::TokenStream {
     }
 }
 
-fn write_infos(map: &InnerMap) -> Result<Vec<DayPart>, Box<error::Error>> {
-    fs::create_dir_all("target/aoc")?;
-    let f = fs::File::create("target/aoc/completed.json")?;
-
-    let mut day_parts: Vec<_> = map
+fn write_infos(map: &InnerMap) -> Result<DayParts, Box<error::Error>> {
+    let mut day_parts: DayParts = map
         .iter()
         .filter_map(|(&(day, part), runner)| {
             if runner.solver.is_some() {
@@ -166,19 +146,16 @@ fn write_infos(map: &InnerMap) -> Result<Vec<DayPart>, Box<error::Error>> {
                 None
             }
         }).collect();
+
     day_parts.sort();
 
-    serde_json::to_writer_pretty(f, &day_parts)?;
+    day_parts.save()?;
 
     Ok(day_parts)
 }
 
-fn read_infos() -> Result<Vec<DayPart>, Box<error::Error>> {
-    let f = fs::File::open("target/aoc/completed.json")?;
-
-    let infos = serde_json::from_reader(f)?;
-
-    Ok(infos)
+fn read_infos() -> Result<DayParts, Box<error::Error>> {
+    DayParts::load()
 }
 
 fn parse_lib_infos(infos: pm::TokenStream) -> Result<LibInfos, ()> {

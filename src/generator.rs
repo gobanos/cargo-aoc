@@ -1,6 +1,7 @@
+use aoc_runner_internal::Part;
 use proc_macro as pm;
 use syn::*;
-use types::{Generator, Part};
+use types::Generator;
 use utils;
 use AOC_RUNNER;
 

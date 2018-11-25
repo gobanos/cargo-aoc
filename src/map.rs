@@ -1,6 +1,8 @@
+use aoc_runner_internal::Day;
+use aoc_runner_internal::Part;
 use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::collections::HashMap;
-use types::{Day, Part, Runner};
+use types::Runner;
 
 pub(crate) type InnerMap = HashMap<(Day, Part), Runner>;
 

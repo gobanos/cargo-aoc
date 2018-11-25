@@ -1,14 +1,11 @@
 #![recursion_limit = "128"]
 
+extern crate aoc_runner_internal;
+extern crate core;
 extern crate proc_macro;
 extern crate proc_macro2;
 extern crate quote;
 extern crate syn;
-
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
 
 mod derive;
 mod generator;

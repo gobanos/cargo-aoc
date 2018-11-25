@@ -1,44 +1,4 @@
-use std::str::FromStr;
 use syn;
-
-#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Serialize, Deserialize, Ord, PartialOrd)]
-pub(crate) struct Day(pub u8);
-
-impl FromStr for Day {
-    type Err = String;
-
-    fn from_str(day: &str) -> Result<Self, Self::Err> {
-        if day.len() < 4 || &day[..3] != "day" {
-            return Err(format!("Failed to parse day: {}", day));
-        }
-
-        day[3..]
-            .parse()
-            .map_err(|e| format!("Failed to parse {}: {:?}", day, e))
-            .and_then(|d| {
-                if d == 0 || d > 25 {
-                    Err(format!("day {} is not between 0 and 25", d))
-                } else {
-                    Ok(Day(d))
-                }
-            })
-    }
-}
-
-#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Serialize, Deserialize, Ord, PartialOrd)]
-pub(crate) struct Part(pub u8);
-
-impl FromStr for Part {
-    type Err = String;
-
-    fn from_str(part: &str) -> Result<Self, Self::Err> {
-        Ok(match part {
-            "part1" => Part(1),
-            "part2" => Part(2),
-            _ => return Err(format!("Failed to parse part: {}", part)),
-        })
-    }
-}
 
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Runner {
