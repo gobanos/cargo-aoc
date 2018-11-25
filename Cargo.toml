@@ -1,0 +1,9 @@
+[package]
+name = "cargo-aoc"
+version = "0.1.0"
+authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
+
+[dependencies]
+dotenv = "0.13.0"
+aoc-runner-internal = { path = "../aoc-runner-internal" }
+toml = "0.4.9"
