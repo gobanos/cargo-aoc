@@ -23,7 +23,7 @@ You will need to find your session token for the AoC in order for cargo-aoc to w
 
 Once you have it, simply run : `cargo aoc credentials -s {token}`
 
-Your now ready to start coding ! 
+You're now ready to start coding ! 
 
 NOTE: If for some reason your token has changed, dont forget to change it back. 
 
