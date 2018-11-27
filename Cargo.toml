@@ -7,3 +7,6 @@ authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
 dotenv = "0.13.0"
 aoc-runner-internal = { path = "../aoc-runner-internal" }
 toml = "0.4.9"
+clap = "2.32.0"
+chrono = "0.4.6"
+reqwest = "0.9.5"
