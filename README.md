@@ -6,6 +6,7 @@ Implement your solution. Let us do the rest.
 
 # Features
 * Input downloading 
+* Running your solution 
 * Benchmarking of your solution (WIP)
 
 # Getting started
@@ -37,7 +38,7 @@ Please note that by default, we're taking today's date as the argument. Of cours
 
 `cargo aoc input -d {day} -y {year}`
 
-# Run your solution
+# Running your solution
 
 `cargo aoc` will run your last implemented day, with your own input.
 
