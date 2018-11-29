@@ -1,19 +1,19 @@
 use clap::ArgMatches;
 use credentials::CredentialsManager;
 use date::AOCDate;
+use project::ProjectManager;
 use reqwest::header::COOKIE;
 use reqwest::Client;
 use reqwest::StatusCode;
-use std::process;
+use std::error;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
-use aoc_runner_internal::DayParts;
+use std::process;
 
 pub struct AOCApp {}
 
 impl AOCApp {
-
     /// Creates a new instance of the application
     pub fn new() -> Self {
         AOCApp {}
@@ -50,13 +50,16 @@ impl AOCApp {
 
         // Creates the AOCDate struct from the arguments (defaults to today...)
         let date: AOCDate = AOCDate::new(sub_args);
-        println!("Requesting input for year {}, day {} ...", date.year, date.day);
+        println!(
+            "Requesting input for year {}, day {} ...",
+            date.year, date.day
+        );
 
         // Creates an HTTP Client
         let client = Client::new();
-        // Cookie formatting ... 
+        // Cookie formatting ...
         let formated_token = format!("session={}", token);
-        // Sends the query to the right URL, with the user token 
+        // Sends the query to the right URL, with the user token
         let res = client
             .get(&date.request_url())
             .header(COOKIE, formated_token)
@@ -73,75 +76,76 @@ impl AOCApp {
                     // TODO: Maybe use crate's infos to get its root in the filesystem ? 
                     fs::create_dir("input").expect("Could not create input directory");
                     fs::create_dir(&dir).expect(&format!("Could not create input directory: {}", dir));
-                    
+
                     // Gets the body from the response and outputs everything to a file
                     let body = response.text().expect("Could not read content from input");
                     let mut file = File::create(&filename).expect(&format!("Could not create file {}", filename));
                     file.write(body.as_bytes()).expect(&format!("Could not write to {}", filename));
                 }
                 sc => println!(
-                    "Could not find corresponding input. Are the day, year, and token correctly set ? Status: {}",sc 
+                    "Could not find corresponding input. Are the day, year, and token correctly set ? Status: {}", sc
                 ),
             },
             Err(e) => println!("Failed to get a response: {}", e),
         }
     }
 
-    pub fn execute_default(&self) {
+    pub fn execute_default(&self) -> Result<(), Box<error::Error>> {
+        // Default mode, TODO: Wrap this in yet another command ?
 
-    // Default mode, TODO: Wrap this in yet another command ?
-    let args = vec!["build", "--release", "--color=always"];
+        let pm = ProjectManager::new()?;
+        let day_parts = pm.build_project()?;
 
-    let status = process::Command::new("cargo")
-        .args(&args)
-        .spawn()
-        .expect("Failed to run cargo")
-        .wait()
-        .expect("Failed to wait for cargo");
+        let cargo_content =
+            include_str!("../template/Cargo.toml").replace("{CRATE_NAME}", &pm.name);
+        let template = include_str!("../template/src/runner.rs");
 
-    if !status.success() {
-        process::exit(status.code().unwrap_or(-1));
-    }
+        let mut body = String::new();
+        for dp in &*day_parts {
+            let (name, display) = if let Some(n) = &dp.name {
+                (
+                    format!("day{}_part{}_{}", dp.day.0, dp.part.0, n.to_lowercase()),
+                    format!("Day {} - Part {} - {}", dp.day.0, dp.part.0, n),
+                )
+            } else {
+                (
+                    format!("day{}_part{}", dp.day.0, dp.part.0),
+                    format!("Day {} - Part {}", dp.day.0, dp.part.0),
+                )
+            };
 
-    let day_parts = DayParts::load().expect("Failed to load AOC infos");
+            let input = format!("day{}", dp.day.0);
 
-    println!("{:#?}", day_parts);
+            body += &template
+                .replace("{RUNNER_NAME}", &name)
+                .replace("{INPUT}", &input)
+                .replace("{RUNNER_DISPLAY}", &display);
+        }
 
-    let cargo: toml::Value = fs::read_to_string("Cargo.toml")
-        .expect("Failed to read Cargo.toml")
-        .parse()
-        .expect("Invalid toml value");
+        let main_content = include_str!("../template/src/main.rs")
+            .replace("{CRATE_SLUG}", &pm.slug)
+            .replace("{YEAR}", &day_parts.year.to_string())
+            .replace("{BODY}", &body);
 
-    let crate_name = cargo
-        .get("package")
-        .unwrap()
-        .get("name")
-        .unwrap()
-        .as_str()
-        .unwrap();
-    let crate_slug = crate_name.replace('-', "_");
+        fs::create_dir_all("target/aoc/aoc-autobuild/src")
+            .expect("failed to create autobuild directory");
+        fs::write("target/aoc/aoc-autobuild/Cargo.toml", &cargo_content)
+            .expect("failed to write Cargo.toml");
+        fs::write("target/aoc/aoc-autobuild/src/main.rs", &main_content)
+            .expect("failed to write src/main.rs");
 
-    let cargo_content = include_str!("../template/Cargo.toml").replace("{CRATE_NAME}", &crate_name);
-    let main_content = include_str!("../template/src/main.rs").replace("{CRATE_SLUG}", &crate_slug);
+        let status = process::Command::new("cargo")
+            .args(&["run", "--release"])
+            .current_dir("target/aoc/aoc-autobuild")
+            .spawn()
+            .expect("Failed to run cargo")
+            .wait()
+            .expect("Failed to wait for cargo");
 
-    fs::create_dir_all("target/aoc/aoc-autobuild/src")
-        .expect("failed to create autobuild directory");
-    fs::write("target/aoc/aoc-autobuild/Cargo.toml", &cargo_content)
-        .expect("failed to write Cargo.toml");
-    fs::write("target/aoc/aoc-autobuild/src/main.rs", &main_content)
-        .expect("failed to write src/main.rs");
+        if !status.success() {
+            process::exit(status.code().unwrap_or(-1));
+        }
 
-    let status = process::Command::new("cargo")
-        .args(&["run", "--release"])
-        .current_dir("target/aoc/aoc-autobuild")
-        .spawn()
-        .expect("Failed to run cargo")
-        .wait()
-        .expect("Failed to wait for cargo");
-
-    if !status.success() {
-        process::exit(status.code().unwrap_or(-1));
-    }
-
+        Ok(())
     }
 }

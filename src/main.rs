@@ -10,6 +10,7 @@ extern crate toml;
 mod app;
 mod credentials;
 mod date;
+mod project;
 
 use clap::{App, Arg, SubCommand};
 
@@ -30,8 +31,7 @@ fn main() {
                         .help("Sets the session cookie")
                         .takes_value(true),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("input")
                 .about("Get the input for a specified date")
                 .arg(
@@ -39,15 +39,13 @@ fn main() {
                         .short("d")
                         .help("Specifies the day. Defaults to today's date.")
                         .takes_value(true),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("year")
                         .short("y")
                         .help("Specifies the year. Defaults to the current year.")
                         .takes_value(true),
                 ),
-        )
-        .get_matches();
+        ).get_matches();
 
     // Creates an AOCApp that we'll use to launch actions (commands)
     let app = AOCApp::new();
@@ -65,5 +63,5 @@ fn main() {
     }
 
     // Else, let's use the default command and let the runner do the rest
-    app.execute_default();
+    app.execute_default().unwrap();
 }
