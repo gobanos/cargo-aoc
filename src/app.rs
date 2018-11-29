@@ -1,3 +1,5 @@
+use aoc_runner_internal::Day;
+use aoc_runner_internal::Part;
 use clap::ArgMatches;
 use credentials::CredentialsManager;
 use date::AOCDate;
@@ -9,6 +11,7 @@ use std::error;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+use std::path::Path;
 use std::process;
 
 pub struct AOCApp {}
@@ -90,18 +93,79 @@ impl AOCApp {
         }
     }
 
-    pub fn execute_default(&self) -> Result<(), Box<error::Error>> {
-        // Default mode, TODO: Wrap this in yet another command ?
+    fn download_input(&self, day: Day, year: u32) -> Result<(), Box<error::Error>> {
+        let date = AOCDate {
+            day: day.0 as u32,
+            year: year as i32,
+        };
+
+        let filename = date.filename();
+        let filename = Path::new(&filename);
+
+        if filename.exists() {
+            return Ok(());
+        }
+
+        let token = CredentialsManager::new().get_session_token()?;
+        // Creates an HTTP Client
+        let client = Client::new();
+        // Cookie formatting ...
+        let formated_token = format!("session={}", token);
+
+        let mut response = client
+            .get(&date.request_url())
+            .header(COOKIE, formated_token)
+            .send()?;
+
+        match response.status() {
+            StatusCode::OK => {
+                let dir = date.directory();
+                // Creates the file-tree to store inputs
+                // TODO: Maybe use crate's infos to get its root in the filesystem ?
+                fs::create_dir_all(&dir)?;
+
+                // Gets the body from the response and outputs everything to a file
+                let body = response.text()?;
+                let mut file = File::create(&filename)?;
+                file.write(body.as_bytes())?;
+            }
+            sc => Err(format!(
+                "Could not find corresponding input. Are the day, year, and token correctly set ? Status: {}\
+                Message: {}", sc, response.text().unwrap_or_else(|_| String::new())
+            ))?,
+        }
+
+        Ok(())
+    }
+
+    pub fn execute_default(&self, args: &ArgMatches) -> Result<(), Box<error::Error>> {
+        let day: Option<Day> = args
+            .value_of("day")
+            .map(|d| d.parse().expect("Failed to parse day"));
+
+        let part: Option<Part> = args
+            .value_of("part")
+            .map(|p| p.parse().expect("Failed to parse part"));
 
         let pm = ProjectManager::new()?;
+
         let day_parts = pm.build_project()?;
+
+        let day = day.unwrap_or_else(|| day_parts.last().expect("No implementation found").day);
+        let year = day_parts.year;
 
         let cargo_content =
             include_str!("../template/Cargo.toml").replace("{CRATE_NAME}", &pm.name);
         let template = include_str!("../template/src/runner.rs");
 
         let mut body = String::new();
-        for dp in &*day_parts {
+        for dp in day_parts.iter().filter(|dp| dp.day == day).filter(|dp| {
+            if let Some(p) = part {
+                dp.part == p
+            } else {
+                true
+            }
+        }) {
             let (name, display) = if let Some(n) = &dp.name {
                 (
                     format!("day{}_part{}_{}", dp.day.0, dp.part.0, n.to_lowercase()),
@@ -114,13 +178,19 @@ impl AOCApp {
                 )
             };
 
-            let input = format!("day{}", dp.day.0);
+            let input = format!("{}/day{}.txt", year, dp.day.0);
 
             body += &template
                 .replace("{RUNNER_NAME}", &name)
                 .replace("{INPUT}", &input)
                 .replace("{RUNNER_DISPLAY}", &display);
         }
+
+        if body.is_empty() {
+            Err("No matching day & part found")?;
+        }
+
+        self.download_input(day, year)?;
 
         let main_content = include_str!("../template/src/main.rs")
             .replace("{CRATE_SLUG}", &pm.slug)

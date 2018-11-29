@@ -23,7 +23,17 @@ fn main() {
         .about("Cargo helper for Advent of Code")
         .author("gobanos <gregory.obanos@gmail.com>")
         .arg(Arg::with_name("dummy").hidden(true).possible_value("aoc"))
-        .subcommand(
+        .arg(
+            Arg::with_name("day")
+                .short("d")
+                .help("Specifies the day. Defaults to last implemented.")
+                .takes_value(true),
+        ).arg(
+            Arg::with_name("part")
+                .short("p")
+                .help("Specifies the part. Defaults to both parts.")
+                .takes_value(true),
+        ).subcommand(
             SubCommand::with_name("credentials")
                 .about("Manage your AOC credentials information")
                 .arg(
@@ -32,8 +42,7 @@ fn main() {
                         .help("Sets the session cookie")
                         .takes_value(true),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("input")
                 .about("Get the input for a specified date")
                 .arg(
@@ -41,15 +50,13 @@ fn main() {
                         .short("d")
                         .help("Specifies the day. Defaults to today's date.")
                         .takes_value(true),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("year")
                         .short("y")
                         .help("Specifies the year. Defaults to the current year.")
                         .takes_value(true),
                 ),
-        )
-        .get_matches();
+        ).get_matches();
 
     // Creates an AOCApp that we'll use to launch actions (commands)
     let app = AOCApp::new();
@@ -58,6 +65,6 @@ fn main() {
         ("credentials", Some(m)) => app.execute_credentials(&m),
         ("input", Some(m)) => app.execute_input(&m),
         (_, Some(_)) => panic!("Unknown command"),
-        _ => app.execute_default().unwrap(),
+        _ => app.execute_default(&matches).unwrap(),
     }
 }

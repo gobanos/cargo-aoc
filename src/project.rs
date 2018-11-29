@@ -30,7 +30,7 @@ impl ProjectManager {
     }
 
     pub fn build_project(&self) -> Result<DayParts, Box<error::Error>> {
-        let args = vec!["build", "--release", "--color=always"];
+        let args = vec!["check", "--color=always"];
 
         let status = process::Command::new("cargo").args(&args).spawn()?.wait()?;
 

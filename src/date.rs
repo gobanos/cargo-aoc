@@ -30,7 +30,7 @@ impl AOCDate {
     }
 
     pub fn filename(&self) -> String {
-        format!("input/{}/day_{}.txt", self.year, self.day)
+        format!("input/{}/day{}.txt", self.year, self.day)
     }
 
     /// Consumes the date to get an URL
