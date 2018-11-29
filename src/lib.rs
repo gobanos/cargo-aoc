@@ -21,6 +21,12 @@ impl AsRef<str> for ArcStr {
     }
 }
 
+impl AsRef<[u8]> for ArcStr {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_bytes()
+    }
+}
+
 pub trait Runner {
     fn gen(input: ArcStr) -> Self where Self: Sized;
     fn run(&self) -> Box<Display>;
