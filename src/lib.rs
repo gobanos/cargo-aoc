@@ -61,7 +61,8 @@ impl DayPart {
     pub fn without_name(&self) -> DayPart {
         DayPart {
             name: None,
-            ..*self
+            day: self.day,
+            part: self.part,
         }
     }
 }
