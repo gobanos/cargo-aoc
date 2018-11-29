@@ -18,11 +18,13 @@ impl FromStr for Day {
     type Err = String;
 
     fn from_str(day: &str) -> Result<Self, Self::Err> {
-        if day.len() < 4 || &day[..3] != "day" {
-            return Err(format!("Failed to parse day: {}", day));
-        }
+        let slice = if day.len() < 4 || &day[..3] != "day" {
+            &day[..]
+        } else {
+            &day[3..]
+        };
 
-        day[3..]
+        slice
             .parse()
             .map_err(|e| format!("Failed to parse {}: {:?}", day, e))
             .and_then(|d| {
@@ -43,8 +45,8 @@ impl FromStr for Part {
 
     fn from_str(part: &str) -> Result<Self, Self::Err> {
         Ok(match part {
-            "part1" => Part(1),
-            "part2" => Part(2),
+            "part1" | "1" => Part(1),
+            "part2" | "2" => Part(2),
             _ => return Err(format!("Failed to parse part: {}", part)),
         })
     }
