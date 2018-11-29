@@ -1,10 +1,9 @@
-use aoc_runner_internal::Day;
-use aoc_runner_internal::Part;
+use aoc_runner_internal::DayPart;
 use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::collections::HashMap;
 use types::Runner;
 
-pub(crate) type InnerMap = HashMap<(Day, Part), Runner>;
+pub(crate) type InnerMap = HashMap<DayPart, Runner>;
 
 #[derive(Debug, Copy, Clone)]
 pub enum MapError {

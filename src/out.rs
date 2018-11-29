@@ -1,5 +1,6 @@
 use aoc_runner_internal::DayPart;
 use aoc_runner_internal::DayParts;
+use aoc_runner_internal::DayPartsBuilder;
 use map::InnerMap;
 use proc_macro as pm;
 use proc_macro2 as pm2;
@@ -25,9 +26,9 @@ pub fn lib_impl(input: pm::TokenStream) -> pm::TokenStream {
     AOC_RUNNER.with(|map| {
         let map = map.consume().unwrap();
 
-        write_infos(&map).unwrap();
-
         let year = infos.year;
+
+        write_infos(&map, year).unwrap();
 
         pm::TokenStream::from(headers(&map, year))
     })
@@ -45,7 +46,7 @@ pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
                 body(&infos, Some(lib))
             }
             MainInfos::Standalone { year } => {
-                let infos = write_infos(&map).unwrap();
+                let infos = write_infos(&map, year).unwrap();
                 let headers = headers(&map, year);
                 let body = body(&infos, None);
 
@@ -64,9 +65,9 @@ pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
 fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
     let traits_impl: pm2::TokenStream = map
         .keys()
-        .map(|&(d, p)| {
-            let snake = to_snakecase(d, p);
-            let camel = to_camelcase(d, p);
+        .map(|dp| {
+            let snake = to_snakecase(&dp);
+            let camel = to_camelcase(&dp);
 
             quote! {
                 pub trait #camel {
@@ -93,12 +94,19 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
 
 fn body(infos: &[DayPart], lib: Option<pm2::Ident>) -> pm2::TokenStream {
     let body : pm2::TokenStream = infos.into_iter().map(|dp| {
-        let identifier = to_snakecase(dp.day, dp.part);
+        let identifier = to_snakecase(dp);
         let input = format!("../input/day{}", dp.day.0);
-        let pattern = format!(
-            "Day {} - Part {} : {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
-            dp.day.0, dp.part.0
-        );
+        let pattern = if let Some(n) = &dp.name {
+            format!(
+                "Day {} - Part {} - {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
+                dp.day.0, dp.part.0, n
+            )
+        } else {
+            format!(
+                "Day {} - Part {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
+                dp.day.0, dp.part.0
+            )
+        };
 
         quote! {
             {
@@ -136,16 +144,17 @@ fn body(infos: &[DayPart], lib: Option<pm2::Ident>) -> pm2::TokenStream {
     }
 }
 
-fn write_infos(map: &InnerMap) -> Result<DayParts, Box<error::Error>> {
-    let mut day_parts: DayParts = map
+fn write_infos(map: &InnerMap, year: u32) -> Result<DayParts, Box<error::Error>> {
+    let mut day_parts = map
         .iter()
-        .filter_map(|(&(day, part), runner)| {
+        .filter_map(|(dp, runner)| {
             if runner.solver.is_some() {
-                Some(DayPart { day, part })
+                Some(dp.clone())
             } else {
                 None
             }
-        }).collect();
+        }).collect::<DayPartsBuilder>()
+        .with_year(year);
 
     day_parts.sort();
 

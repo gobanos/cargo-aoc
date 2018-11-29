@@ -1,9 +1,10 @@
-use aoc_runner_internal::Day;
-use aoc_runner_internal::Part;
+use aoc_runner_internal::DayPart;
 use proc_macro as pm;
 use syn;
 
-pub(crate) fn extract_meta(args: pm::TokenStream) -> (syn::Ident, Option<syn::Ident>) {
+pub(crate) fn extract_meta(
+    args: pm::TokenStream,
+) -> (syn::Ident, Option<syn::Ident>, Option<syn::Ident>) {
     let mut idents = args.into_iter().filter_map(|a| {
         if let pm::TokenTree::Ident(_) = a {
             Some(a.into())
@@ -16,18 +17,30 @@ pub(crate) fn extract_meta(args: pm::TokenStream) -> (syn::Ident, Option<syn::Id
     let day: syn::Ident = syn::parse(day).unwrap();
 
     let part = idents.next().and_then(|i| syn::parse(i).ok());
+    let name = idents.next().and_then(|i| syn::parse(i).ok());
 
-    (day, part)
+    (day, part, name)
 }
 
-pub(crate) fn to_snakecase(day: Day, part: Part) -> syn::Ident {
-    let name = format!("day{}_part{}", day.0, part.0);
+pub(crate) fn to_snakecase(dp: &DayPart) -> syn::Ident {
+    let DayPart { day, part, name } = dp;
+    let name = if let Some(name) = name {
+        format!("day{}_part{}_{}", day.0, part.0, name.to_lowercase())
+    } else {
+        format!("day{}_part{}", day.0, part.0)
+    };
 
     syn::Ident::new(&name, pm::Span::call_site().into())
 }
 
-pub(crate) fn to_camelcase(day: Day, part: Part) -> syn::Ident {
-    let name = format!("Day{}Part{}", day.0, part.0);
+pub(crate) fn to_camelcase(dp: &DayPart) -> syn::Ident {
+    let DayPart { day, part, name } = dp;
+
+    let name = if let Some(name) = name {
+        format!("Day{}Part{}{}", day.0, part.0, name.to_uppercase())
+    } else {
+        format!("Day{}Part{}", day.0, part.0)
+    };
 
     syn::Ident::new(&name, pm::Span::call_site().into())
 }
