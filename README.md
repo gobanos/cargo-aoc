@@ -41,7 +41,7 @@ Please note that by default, we're taking today's date as the argument. Of cours
 
 `cargo aoc` will run your last implemented day, with your own input.
 
-Need to run an older solution, or only a part ? `cargo aoc -d {day} -p {part}` !
+Need to run an older puzzle, or only a part ? `cargo aoc -d {day} -p {part}` !
 
 # Benchmarking your solution
 
