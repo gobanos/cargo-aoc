@@ -12,7 +12,7 @@ Implement your solution. Let us do the rest.
 
 ## Install `cargo aoc`
 
-Boot a terminal and install the program using `cargo install aoc`
+Boot a terminal and install the program using `cargo install cargo-aoc`
 
 ## Setting up
 
@@ -36,6 +36,12 @@ NOTE: If for some reason your token has changed, dont forget to change it back.
 Please note that by default, we're taking today's date as the argument. Of course, you can change this using : 
 
 `cargo aoc input -d {day} -y {year}`
+
+# Run your solution
+
+`cargo aoc` will run your last implemented day, with your own input.
+
+Need to run an older solution, or only a part ? `cargo aoc -d {day} -p {part}` !
 
 # Benchmarking your solution
 
