@@ -2,14 +2,14 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 
-use std::str::FromStr;
 use serde_derive::*;
+use std::cmp::Ordering;
 use std::error;
 use std::fs;
-use std::ops::Deref;
 use std::iter::FromIterator;
-use std::cmp::Ordering;
+use std::ops::Deref;
 use std::ops::DerefMut;
+use std::str::FromStr;
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Serialize, Deserialize, Ord, PartialOrd)]
 pub struct Day(pub u8);
@@ -50,10 +50,20 @@ impl FromStr for Part {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub struct DayPart {
     pub day: Day,
     pub part: Part,
+    pub name: Option<String>,
+}
+
+impl DayPart {
+    pub fn without_name(&self) -> DayPart {
+        DayPart {
+            name: None,
+            ..*self
+        }
+    }
 }
 
 impl PartialOrd for DayPart {
@@ -64,13 +74,17 @@ impl PartialOrd for DayPart {
 
 impl Ord for DayPart {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.day.cmp(&other.day).then(self.part.cmp(&other.part))
+        self.day
+            .cmp(&other.day)
+            .then(self.part.cmp(&other.part))
+            .then(self.name.cmp(&other.name))
     }
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DayParts {
-    inner: Vec<DayPart>,
+    pub year: u32,
+    parts: Vec<DayPart>,
 }
 
 impl DayParts {
@@ -78,7 +92,7 @@ impl DayParts {
         fs::create_dir_all("target/aoc")?;
         let f = fs::File::create("target/aoc/completed.json")?;
 
-        serde_json::to_writer_pretty(f, &self.inner)?;
+        serde_json::to_writer_pretty(f, &self)?;
 
         Ok(())
     }
@@ -86,9 +100,7 @@ impl DayParts {
     pub fn load() -> Result<Self, Box<error::Error>> {
         let f = fs::File::open("target/aoc/completed.json")?;
 
-        let inner: Vec<DayPart> = serde_json::from_reader(f)?;
-
-        Ok(DayParts { inner })
+        Ok(serde_json::from_reader(f)?)
     }
 }
 
@@ -96,19 +108,32 @@ impl Deref for DayParts {
     type Target = [DayPart];
 
     fn deref(&self) -> &[DayPart] {
-        &self.inner
+        &self.parts
     }
 }
 
 impl DerefMut for DayParts {
     fn deref_mut(&mut self) -> &mut [DayPart] {
-        &mut self.inner
+        &mut self.parts
     }
 }
 
-impl FromIterator<DayPart> for DayParts {
-    fn from_iter<T: IntoIterator<Item=DayPart>>(iter: T) -> Self {
-        let inner = iter.into_iter().collect();
-        DayParts { inner }
+pub struct DayPartsBuilder {
+    parts: Vec<DayPart>,
+}
+
+impl DayPartsBuilder {
+    pub fn with_year(self, year: u32) -> DayParts {
+        DayParts {
+            year,
+            parts: self.parts,
+        }
+    }
+}
+
+impl FromIterator<DayPart> for DayPartsBuilder {
+    fn from_iter<T: IntoIterator<Item = DayPart>>(iter: T) -> Self {
+        let parts = iter.into_iter().collect();
+        DayPartsBuilder { parts }
     }
 }
