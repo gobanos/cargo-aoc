@@ -17,7 +17,7 @@ use clap::{App, Arg, SubCommand};
 use app::AOCApp;
 
 fn main() {
-    // Parses
+    // Parses the attributes (CLAP)
     let matches = App::new("cargo-aoc")
         .version("1.0")
         .about("Cargo helper for Advent of Code")

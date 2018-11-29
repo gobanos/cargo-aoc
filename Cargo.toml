@@ -3,10 +3,6 @@ name = "cargo-aoc"
 version = "0.1.0"
 authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
 
-#[[bin]]
-#name = "aoc"
-#path = "src/main.rs"
-
 [dependencies]
 dotenv = "0.13.0"
 aoc-runner-internal = { path = "../aoc-runner-internal" }
