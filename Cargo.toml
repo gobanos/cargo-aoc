@@ -2,6 +2,9 @@
 name = "aoc-runner-internal"
 version = "0.1.0"
 authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
+description = "Internal machinery for aoc-runner & others"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/gobanos/aoc-runner-internal"
 
 [dependencies]
 serde = "1.0.80"
