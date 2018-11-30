@@ -38,8 +38,7 @@ In order for `cargo-aoc` to work properly, you have to set the project up correc
 If you get lost during the process, you can take [this example repository of AoC 2015](https://github.com/gobanos/advent-of-code-2015) as a template.
 
 First, you must add a dependency on `aoc-runner` and `aoc-runner-derive` in your `Cargo.toml`.
-In your `src/lib.rs`, add **each day as a separate module** using `pub mod dayX.rs`.
-At the end of the `src/lib.rs`, you will have to use the macro aoc_lib!{ year = XXXX }, where XXXX is the 
+At the end of the `src/lib.rs`, you will have to use the macro `aoc_lib!{ year = XXXX }`, where XXXX is the
 year of the AoC puzzles being solved.
 
 When implementing a solution for a day, you have to provide functions and tag them accordingly.
@@ -89,9 +88,12 @@ pub fn input_generator(input: &str) -> Vec<Gift> {
 }
 ``` 
 
-As you can see, generators take a &str type as an input, and outputs any type that you want, so you can then use it in `solver` functions.
+As you can see, generators take a `&str` (or a `&[u8]`) type as an input, and outputs any type that you want, so you can then use it in `solver` functions.
 
-You can only have one generator per day, and its output will be used as the input of the solvers if they are tagged with the same day. 
+You can have a generator per day, and its output will be used as the input of the solvers if they are tagged with the same day, or `part1` or `part2` in the meta :
+```
+#[aoc_generator(day2, part1)]
+```
 
 ### Solver functions 
 
