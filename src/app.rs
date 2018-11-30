@@ -154,9 +154,15 @@ impl AOCApp {
         let day = day.unwrap_or_else(|| day_parts.last().expect("No implementation found").day);
         let year = day_parts.year;
 
-        let cargo_content =
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/Cargo.toml.tpl")).replace("{CRATE_NAME}", &pm.name);
-        let template = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/src/runner.rs.tpl"));
+        let cargo_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/template/Cargo-run.toml.tpl"
+        )).replace("{CRATE_NAME}", &pm.name);
+
+        let template = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/template/src/runner.rs.tpl"
+        ));
 
         let mut body = String::new();
         for dp in day_parts.iter().filter(|dp| dp.day == day).filter(|dp| {
@@ -192,10 +198,12 @@ impl AOCApp {
 
         self.download_input(day, year)?;
 
-        let main_content = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/src/main.rs.tpl"))
-            .replace("{CRATE_SLUG}", &pm.slug)
-            .replace("{YEAR}", &day_parts.year.to_string())
-            .replace("{BODY}", &body);
+        let main_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/template/src/main.rs.tpl"
+        )).replace("{CRATE_SLUG}", &pm.slug)
+        .replace("{YEAR}", &day_parts.year.to_string())
+        .replace("{BODY}", &body);
 
         fs::create_dir_all("target/aoc/aoc-autobuild/src")
             .expect("failed to create autobuild directory");
@@ -207,6 +215,128 @@ impl AOCApp {
         let status = process::Command::new("cargo")
             .args(&["run", "--release"])
             .current_dir("target/aoc/aoc-autobuild")
+            .spawn()
+            .expect("Failed to run cargo")
+            .wait()
+            .expect("Failed to wait for cargo");
+
+        if !status.success() {
+            process::exit(status.code().unwrap_or(-1));
+        }
+
+        Ok(())
+    }
+
+    pub fn execute_bench(&self, args: &ArgMatches) -> Result<(), Box<error::Error>> {
+        let day: Option<Day> = args
+            .value_of("day")
+            .map(|d| d.parse().expect("Failed to parse day"));
+
+        let part: Option<Part> = args
+            .value_of("part")
+            .map(|p| p.parse().expect("Failed to parse part"));
+
+        let pm = ProjectManager::new()?;
+
+        let day_parts = pm.build_project()?;
+
+        let day = day.unwrap_or_else(|| day_parts.last().expect("No implementation found").day);
+        let year = day_parts.year;
+
+        let cargo_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/template/Cargo-bench.toml.tpl"
+        )).replace("{CRATE_NAME}", &pm.name);
+
+        let bench_tpl = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/template/benches/aoc_benchmark.rs.tpl"
+        ));
+
+        let part_tpl = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/template/benches/part.rs.tpl"
+        ));
+
+        let impl_tpl = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/template/benches/impl.rs.tpl"
+        ));
+
+        let matching_parts = day_parts.iter().filter(|dp| dp.day == day).filter(|dp| {
+            if let Some(p) = part {
+                dp.part == p
+            } else {
+                true
+            }
+        });
+
+        let mut parts: Vec<_> = matching_parts.clone().map(|dp| dp.part).collect();
+        parts.sort();
+        parts.dedup();
+
+        let body: String = parts
+            .into_iter()
+            .map(|p| {
+                let part_name = format!("day{}_part{}", day.0, p.0);
+                part_tpl
+                    .replace("{PART_NAME}", &part_name)
+                    .replace("{DAY}", &day.0.to_string())
+                    .replace("{PART}", &p.0.to_string())
+                    .replace(
+                        "{IMPLS}",
+                        &matching_parts
+                            .clone()
+                            .filter(|dp| dp.part == p)
+                            .map(|dp| {
+                                impl_tpl
+                                    .replace(
+                                        "{RUNNER_NAME}",
+                                        &if let Some(n) = &dp.name {
+                                            format!(
+                                                "day{}_part{}_{}",
+                                                dp.day.0,
+                                                dp.part.0,
+                                                n.to_lowercase()
+                                            )
+                                        } else {
+                                            format!("day{}_part{}", dp.day.0, dp.part.0)
+                                        },
+                                    ).replace("{INPUT}", &format!("{}/day{}.txt", year, dp.day.0))
+                                    .replace(
+                                        "{NAME}",
+                                        if let Some(n) = &dp.name {
+                                            &n
+                                        } else {
+                                            "(default)"
+                                        },
+                                    ).replace("{PART_NAME}", &part_name)
+                            }).collect::<String>(),
+                    )
+            }).collect();
+
+        if body.is_empty() {
+            Err("No matching day & part found")?;
+        }
+
+        self.download_input(day, year)?;
+
+        let main_content = bench_tpl
+            .replace("{CRATE_SLUG}", &pm.slug)
+            .replace("{PARTS}", &body);
+
+        fs::create_dir_all("target/aoc/aoc-autobench/benches")
+            .expect("failed to create autobench directory");
+        fs::write("target/aoc/aoc-autobench/Cargo.toml", &cargo_content)
+            .expect("failed to write Cargo.toml");
+        fs::write(
+            "target/aoc/aoc-autobench/benches/aoc_benchmark.rs",
+            &main_content,
+        ).expect("failed to write src/aoc_benchmark.rs");
+
+        let status = process::Command::new("cargo")
+            .args(&["bench"])
+            .current_dir("target/aoc/aoc-autobench")
             .spawn()
             .expect("Failed to run cargo")
             .wait()

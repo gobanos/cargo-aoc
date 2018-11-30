@@ -1,5 +1,5 @@
 [package]
-name = "aoc-autobuild"
+name = "aoc-autobench"
 version = "0.1.0"
 authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
 

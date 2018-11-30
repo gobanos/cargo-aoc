@@ -34,6 +34,20 @@ fn main() {
                 .help("Specifies the part. Defaults to both parts.")
                 .takes_value(true),
         ).subcommand(
+            SubCommand::with_name("bench")
+                .about("Benchmark your solutions")
+                .arg(
+                    Arg::with_name("day")
+                        .short("d")
+                        .help("Specifies the day. Defaults to last implemented.")
+                        .takes_value(true),
+                ).arg(
+                    Arg::with_name("part")
+                        .short("p")
+                        .help("Specifies the part. Defaults to both parts.")
+                        .takes_value(true),
+                ),
+        ).subcommand(
             SubCommand::with_name("credentials")
                 .about("Manage your AOC credentials information")
                 .arg(
@@ -64,6 +78,7 @@ fn main() {
     match matches.subcommand() {
         ("credentials", Some(m)) => app.execute_credentials(&m),
         ("input", Some(m)) => app.execute_input(&m),
+        ("bench", Some(m)) => app.execute_bench(&m).unwrap(),
         (_, Some(_)) => panic!("Unknown command"),
         _ => app.execute_default(&matches).unwrap(),
     }
