@@ -74,7 +74,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-aoc"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aoc-runner-internal 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
