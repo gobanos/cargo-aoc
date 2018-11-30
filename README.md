@@ -46,4 +46,4 @@ Need to run an older puzzle, or only a part ? `cargo aoc -d {day} -p {part}` !
 
 # Benchmarking your solution
 
-{ WIP }
+Just use `cargo aoc bench`, in the same way `cargo aoc` work !
