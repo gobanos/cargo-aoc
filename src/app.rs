@@ -157,8 +157,7 @@ impl AOCApp {
         let cargo_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/template/Cargo-run.toml.tpl"
-        ))
-        .replace("{CRATE_NAME}", &pm.name);
+        )).replace("{CRATE_NAME}", &pm.name);
 
         let template = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -202,8 +201,7 @@ impl AOCApp {
         let main_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/template/src/main.rs.tpl"
-        ))
-        .replace("{CRATE_SLUG}", &pm.slug)
+        )).replace("{CRATE_SLUG}", &pm.slug)
         .replace("{YEAR}", &day_parts.year.to_string())
         .replace("{BODY}", &body);
 
@@ -248,8 +246,7 @@ impl AOCApp {
         let cargo_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/template/Cargo-bench.toml.tpl"
-        ))
-        .replace("{CRATE_NAME}", &pm.name);
+        )).replace("{CRATE_NAME}", &pm.name);
 
         let bench_tpl = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -305,8 +302,7 @@ impl AOCApp {
                                         } else {
                                             format!("day{}_part{}", dp.day.0, dp.part.0)
                                         },
-                                    )
-                                    .replace("{INPUT}", &format!("{}/day{}.txt", year, dp.day.0))
+                                    ).replace("{INPUT}", &format!("{}/day{}.txt", year, dp.day.0))
                                     .replace(
                                         "{NAME}",
                                         if let Some(n) = &dp.name {
@@ -314,13 +310,10 @@ impl AOCApp {
                                         } else {
                                             "(default)"
                                         },
-                                    )
-                                    .replace("{PART_NAME}", &part_name)
-                            })
-                            .collect::<String>(),
+                                    ).replace("{PART_NAME}", &part_name)
+                            }).collect::<String>(),
                     )
-            })
-            .collect();
+            }).collect();
 
         if body.is_empty() {
             Err("No matching day & part found")?;
@@ -339,8 +332,7 @@ impl AOCApp {
         fs::write(
             "target/aoc/aoc-autobench/benches/aoc_benchmark.rs",
             &main_content,
-        )
-        .expect("failed to write src/aoc_benchmark.rs");
+        ).expect("failed to write src/aoc_benchmark.rs");
 
         let status = process::Command::new("cargo")
             .args(&["bench"])
@@ -355,8 +347,12 @@ impl AOCApp {
         }
 
         if args.is_present("open") {
-            // TODO: Handle webbrowser opening of the benchmarks...
-            //webbrowser::open("target/aoc/aoc-autobench/target/criterion")
+            let index = "target/aoc/aoc-autobench/target/criterion/report/index.html";
+
+            if !Path::new(index).exists() {
+                Err("Report is missing, perhaps gnuplot is missing ?")?;
+            }
+            webbrowser::open(index)?;
         }
 
         Ok(())

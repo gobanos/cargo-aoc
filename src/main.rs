@@ -29,14 +29,12 @@ fn main() {
                 .short("d")
                 .help("Specifies the day. Defaults to last implemented.")
                 .takes_value(true),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("part")
                 .short("p")
                 .help("Specifies the part. Defaults to both parts.")
                 .takes_value(true),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("bench")
                 .about("Benchmark your solutions")
                 .arg(
@@ -44,20 +42,17 @@ fn main() {
                         .short("d")
                         .help("Specifies the day. Defaults to last implemented.")
                         .takes_value(true),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("part")
                         .short("p")
                         .help("Specifies the part. Defaults to both parts.")
                         .takes_value(true),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("open")
                         .short("o")
                         .help("Opens the benchmark information in the browser"),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("credentials")
                 .about("Manage your AOC credentials information")
                 .arg(
@@ -66,8 +61,7 @@ fn main() {
                         .help("Sets the session cookie")
                         .takes_value(true),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("input")
                 .about("Get the input for a specified date")
                 .arg(
@@ -75,15 +69,13 @@ fn main() {
                         .short("d")
                         .help("Specifies the day. Defaults to today's date.")
                         .takes_value(true),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("year")
                         .short("y")
                         .help("Specifies the year. Defaults to the current year.")
                         .takes_value(true),
                 ),
-        )
-        .get_matches();
+        ).get_matches();
 
     // Creates an AOCApp that we'll use to launch actions (commands)
     let app = AOCApp::new();
@@ -91,8 +83,14 @@ fn main() {
     match matches.subcommand() {
         ("credentials", Some(m)) => app.execute_credentials(&m),
         ("input", Some(m)) => app.execute_input(&m),
-        ("bench", Some(m)) => app.execute_bench(&m).unwrap(),
-        (_, Some(_)) => panic!("Unknown command"),
-        _ => app.execute_default(&matches).unwrap(),
+        ("bench", Some(m)) => if let Err(e) = app.execute_bench(&m) {
+            eprintln!("An error occurs : {}", e.description());
+            std::process::exit(-1);
+        },
+        (c, Some(_)) => panic!("Unknown command `{}`", c),
+        _ => if let Err(e) = app.execute_default(&matches) {
+            eprintln!("An error occurs : {}", e.description());
+            std::process::exit(-1);
+        },
     }
 }
