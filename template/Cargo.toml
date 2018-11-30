@@ -5,4 +5,4 @@ authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
 
 [dependencies]
 {CRATE_NAME} = { path = "../../.." }
-aoc-runner = { path = "../../../../aoc-runner" }
+aoc-runner = "0.1.0"
