@@ -90,10 +90,7 @@ pub fn input_generator(input: &str) -> Vec<Gift> {
 
 As you can see, generators take a `&str` (or a `&[u8]`) type as an input, and outputs any type that you want, so you can then use it in `solver` functions.
 
-You can have a generator per day, and its output will be used as the input of the solvers if they are tagged with the same day, or `part1` or `part2` in the meta :
-```
-#[aoc_generator(day2, part1)]
-```
+[link to doc](https://docs.rs/aoc-runner-derive/latest/aoc_runner_derive/attr.aoc_generator.html)
 
 ### Solver functions 
 
@@ -121,6 +118,8 @@ Notice how we're taking the `Gift`s generated previously, and using Rust's itera
 
 The output of this particular solver is an `u32`, which of course implements `Display`.
 When running your solution using `cargo aoc`, said result will then get printed in the console, along with other informations about execution time.
+
+[link to doc](https://docs.rs/aoc-runner-derive/latest/aoc_runner_derive/attr.aoc.html)
 
 # Downloading your input manually
 
