@@ -9,7 +9,6 @@ readme = "README.md"
 include = ["Cargo.toml", "src/**/*", "template/**/*", "README.md"]
 
 [dependencies]
-dotenv = "0.13.0"
 aoc-runner-internal = "0.1.0"
 toml = "0.4.9"
 clap = "2.32.0"
