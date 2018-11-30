@@ -6,7 +6,7 @@ description = "Cargo Advent of Code Helper"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/gobanos/cargo-aoc"
 readme = "README.md"
-include = ["Cargo.toml", "src/**/*", "template/**/*", "README.md"]
+include = ["Cargo.toml", "src/**/*", "template/**/*.tpl", "README.md"]
 
 [dependencies]
 aoc-runner-internal = "0.1.0"

@@ -155,8 +155,8 @@ impl AOCApp {
         let year = day_parts.year;
 
         let cargo_content =
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/Cargo.toml")).replace("{CRATE_NAME}", &pm.name);
-        let template = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/src/runner.rs"));
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/Cargo.toml.tpl")).replace("{CRATE_NAME}", &pm.name);
+        let template = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/src/runner.rs.tpl"));
 
         let mut body = String::new();
         for dp in day_parts.iter().filter(|dp| dp.day == day).filter(|dp| {
@@ -192,7 +192,7 @@ impl AOCApp {
 
         self.download_input(day, year)?;
 
-        let main_content = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/src/main.rs"))
+        let main_content = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/template/src/main.rs.tpl"))
             .replace("{CRATE_SLUG}", &pm.slug)
             .replace("{YEAR}", &day_parts.year.to_string())
             .replace("{BODY}", &body);
