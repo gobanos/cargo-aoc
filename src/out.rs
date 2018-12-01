@@ -70,7 +70,7 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
 
             quote! {
                 pub trait #camel {
-                    fn #snake(input: ArcStr) -> Box<Runner>;
+                    fn #snake(input: ArcStr) -> Box<dyn Runner>;
                 }
             }
         }).collect();
@@ -143,7 +143,7 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
     }
 }
 
-fn write_infos(map: &InnerMap, year: u32) -> Result<DayParts, Box<error::Error>> {
+fn write_infos(map: &InnerMap, year: u32) -> Result<DayParts, Box<dyn error::Error>> {
     let mut day_parts = map
         .iter()
         .filter_map(|(dp, runner)| {
@@ -162,7 +162,7 @@ fn write_infos(map: &InnerMap, year: u32) -> Result<DayParts, Box<error::Error>>
     Ok(day_parts)
 }
 
-fn read_infos() -> Result<DayParts, Box<error::Error>> {
+fn read_infos() -> Result<DayParts, Box<dyn error::Error>> {
     DayParts::load()
 }
 

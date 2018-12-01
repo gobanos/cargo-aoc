@@ -33,7 +33,7 @@ pub fn aoc_runner_derive_impl(input: pm::TokenStream) -> pm::TokenStream {
                 }
             }
 
-            fn run(&self) -> Box<std::fmt::Display> {
+            fn run(&self) -> Box<dyn std::fmt::Display> {
                 Box::new( #fn_runner(self.input.as_ref()) )
             }
         }

@@ -78,7 +78,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
             use crate::{Factory, #trait_name};
 
             impl #trait_name for Factory {
-                fn #mod_name(input: ArcStr) -> Box<Runner> {
+                fn #mod_name(input: ArcStr) -> Box<dyn Runner> {
                     Box::new( RunnerStruct::gen(input) )
                 }
             }
