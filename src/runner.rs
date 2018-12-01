@@ -2,9 +2,9 @@ use aoc_runner_internal::DayPart;
 use proc_macro as pm;
 use quote::quote;
 use syn::*;
-use types::Solver;
-use utils::{self, to_camelcase, to_snakecase};
-use AOC_RUNNER;
+use crate::types::Solver;
+use crate::utils::{self, to_camelcase, to_snakecase};
+use crate::AOC_RUNNER;
 
 pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
     let (day, part, name) = utils::extract_meta(args);

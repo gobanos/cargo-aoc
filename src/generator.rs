@@ -1,9 +1,9 @@
 use aoc_runner_internal::{DayPart, Part};
 use proc_macro as pm;
 use syn::*;
-use types::Generator;
-use utils;
-use AOC_RUNNER;
+use crate::types::Generator;
+use crate::utils;
+use crate::AOC_RUNNER;
 
 pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
     let (day, part, name) = utils::extract_meta(args);

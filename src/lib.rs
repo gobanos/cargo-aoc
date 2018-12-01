@@ -15,7 +15,7 @@ mod runner;
 mod types;
 mod utils;
 
-use map::Map;
+use crate::map::Map;
 use proc_macro as pm;
 
 thread_local! {

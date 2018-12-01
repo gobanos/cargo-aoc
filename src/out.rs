@@ -1,12 +1,12 @@
 use aoc_runner_internal::DayParts;
 use aoc_runner_internal::DayPartsBuilder;
-use map::InnerMap;
+use crate::map::InnerMap;
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
 use std::error;
-use utils::{to_camelcase, to_snakecase};
-use AOC_RUNNER;
+use crate::utils::{to_camelcase, to_snakecase};
+use crate::AOC_RUNNER;
 
 #[derive(Debug)]
 struct LibInfos {
