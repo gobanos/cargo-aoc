@@ -35,7 +35,7 @@ pub(crate) struct Generator {
 }
 
 impl Generator {
-    pub fn new(name: syn::Ident, out_t: Box<syn::Type>) -> Generator {
+    pub fn new(name: &syn::Ident, out_t: &syn::Type) -> Generator {
         Generator {
             name: name.to_string(),
             out_t: quote! { #out_t }.to_string(),
@@ -58,7 +58,7 @@ pub(crate) struct Solver {
 }
 
 impl Solver {
-    pub fn new(name: syn::Ident, out_t: Box<syn::Type>) -> Solver {
+    pub fn new(name: &syn::Ident, out_t: &syn::Type) -> Solver {
         Solver {
             name: name.to_string(),
             out_t: quote! { #out_t }.to_string(),

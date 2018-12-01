@@ -1,8 +1,8 @@
+use aoc_runner_internal::DayParts;
+use aoc_runner_internal::DayPartsBuilder;
 use crate::map::InnerMap;
 use crate::utils::{to_camelcase, to_snakecase};
 use crate::AOC_RUNNER;
-use aoc_runner_internal::DayParts;
-use aoc_runner_internal::DayPartsBuilder;
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
@@ -73,8 +73,7 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
                     fn #snake(input: ArcStr) -> Box<dyn Runner>;
                 }
             }
-        })
-        .collect();
+        }).collect();
 
     quote! {
         pub use self::aoc_factory::*;
@@ -153,8 +152,7 @@ fn write_infos(map: &InnerMap, year: u32) -> Result<DayParts, Box<dyn error::Err
             } else {
                 None
             }
-        })
-        .collect::<DayPartsBuilder>()
+        }).collect::<DayPartsBuilder>()
         .with_year(year);
 
     day_parts.sort();

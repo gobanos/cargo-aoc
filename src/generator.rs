@@ -1,7 +1,7 @@
+use aoc_runner_internal::{DayPart, Part};
 use crate::types::Generator;
 use crate::utils;
 use crate::AOC_RUNNER;
-use aoc_runner_internal::{DayPart, Part};
 use proc_macro as pm;
 use syn::*;
 
@@ -32,9 +32,8 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
                     day,
                     part: p,
                     name: name.clone(),
-                })
-                .or_default();
-            runner.with_generator(Generator::new(fn_name.clone(), out_t.clone()));
+                }).or_default();
+            runner.with_generator(Generator::new(&fn_name, &out_t));
         };
 
         if let Some(p) = part {

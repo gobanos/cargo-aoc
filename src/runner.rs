@@ -1,7 +1,7 @@
+use aoc_runner_internal::DayPart;
 use crate::types::Solver;
 use crate::utils::{self, to_camelcase, to_snakecase};
 use crate::AOC_RUNNER;
-use aoc_runner_internal::DayPart;
 use proc_macro as pm;
 use quote::quote;
 use syn::*;
@@ -40,7 +40,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
 
         let runner = map.entry(dp).or_default();
 
-        runner.with_solver(Solver::new(fn_name.clone(), out_t.clone()));
+        runner.with_solver(Solver::new(&fn_name, &out_t));
 
         if let Some(generator) = &runner.generator {
             let gen_out_t = &generator.get_out_t();

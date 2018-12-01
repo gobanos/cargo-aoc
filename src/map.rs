@@ -1,5 +1,5 @@
-use crate::types::Runner;
 use aoc_runner_internal::DayPart;
+use crate::types::Runner;
 use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::collections::HashMap;
 
