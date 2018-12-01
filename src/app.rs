@@ -77,8 +77,7 @@ impl AOCApp {
                     let dir = date.directory();
                     // Creates the file-tree to store inputs
                     // TODO: Maybe use crate's infos to get its root in the filesystem ? 
-                    fs::create_dir("input").expect("Could not create input directory");
-                    fs::create_dir(&dir).expect(&format!("Could not create input directory: {}", dir));
+                    fs::create_dir_all(&dir).expect(&format!("Could not create input directory: {}", dir));
 
                     // Gets the body from the response and outputs everything to a file
                     let body = response.text().expect("Could not read content from input");
