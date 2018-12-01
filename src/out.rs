@@ -1,4 +1,3 @@
-use aoc_runner_internal::DayPart;
 use aoc_runner_internal::DayParts;
 use aoc_runner_internal::DayPartsBuilder;
 use map::InnerMap;
@@ -92,10 +91,10 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
     }
 }
 
-fn body(infos: &[DayPart], lib: Option<pm2::Ident>) -> pm2::TokenStream {
-    let body : pm2::TokenStream = infos.into_iter().map(|dp| {
+fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
+    let body : pm2::TokenStream = infos.iter().map(|dp| {
         let identifier = to_snakecase(dp);
-        let input = format!("../input/day{}", dp.day.0);
+        let input = format!("../input/{}/day{}.txt", infos.year, dp.day.0);
         let pattern = if let Some(n) = &dp.name {
             format!(
                 "Day {} - Part {} - {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
