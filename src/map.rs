@@ -1,7 +1,7 @@
+use crate::types::Runner;
 use aoc_runner_internal::DayPart;
 use std::cell::{Cell, Ref, RefCell, RefMut};
 use std::collections::HashMap;
-use crate::types::Runner;
 
 pub(crate) type InnerMap = HashMap<DayPart, Runner>;
 

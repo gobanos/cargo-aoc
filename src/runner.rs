@@ -1,10 +1,10 @@
+use crate::types::Solver;
+use crate::utils::{self, to_camelcase, to_snakecase};
+use crate::AOC_RUNNER;
 use aoc_runner_internal::DayPart;
 use proc_macro as pm;
 use quote::quote;
 use syn::*;
-use crate::types::Solver;
-use crate::utils::{self, to_camelcase, to_snakecase};
-use crate::AOC_RUNNER;
 
 pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
     let (day, part, name) = utils::extract_meta(args);
@@ -43,8 +43,8 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
         runner.with_solver(Solver::new(fn_name.clone(), out_t.clone()));
 
         if let Some(generator) = &runner.generator {
-            let gen_out_t = &generator.out_t;
-            let gen_name = &generator.name;
+            let gen_out_t = &generator.get_out_t();
+            let gen_name = &generator.get_name();
 
             quote! {
                 #[runner(#fn_name, #gen_name)]
@@ -74,6 +74,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
         mod #mod_name {
             use super::*;
             use aoc_runner::{ArcStr, Runner};
+            use aoc_runner_derive::Runner;
             use std::marker::PhantomData;
             use crate::{Factory, #trait_name};
 

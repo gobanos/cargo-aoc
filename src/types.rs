@@ -1,3 +1,6 @@
+use proc_macro as pm;
+use proc_macro2 as pm2;
+use quote::quote;
 use syn;
 
 #[derive(Clone, Debug, Default)]
@@ -27,24 +30,38 @@ impl Runner {
 
 #[derive(Clone, Debug)]
 pub(crate) struct Generator {
-    pub name: syn::Ident,
-    pub out_t: Box<syn::Type>,
+    name: String,
+    out_t: String,
 }
 
 impl Generator {
     pub fn new(name: syn::Ident, out_t: Box<syn::Type>) -> Generator {
-        Generator { name, out_t }
+        Generator {
+            name: name.to_string(),
+            out_t: quote! { #out_t }.to_string(),
+        }
+    }
+
+    pub fn get_name(&self) -> syn::Ident {
+        syn::Ident::new(&self.name, pm::Span::call_site().into())
+    }
+
+    pub fn get_out_t(&self) -> pm2::TokenStream {
+        self.out_t.parse().unwrap()
     }
 }
 
 #[derive(Clone, Debug)]
 pub(crate) struct Solver {
-    pub name: syn::Ident,
-    pub out_t: Box<syn::Type>,
+    name: String,
+    out_t: String,
 }
 
 impl Solver {
     pub fn new(name: syn::Ident, out_t: Box<syn::Type>) -> Solver {
-        Solver { name, out_t }
+        Solver {
+            name: name.to_string(),
+            out_t: quote! { #out_t }.to_string(),
+        }
     }
 }
