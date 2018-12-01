@@ -1,6 +1,6 @@
 [package]
 name = "cargo-aoc"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Grégory Obanos <gregory.obanos@gmail.com>", "Olivier Pinon <oliv.pinon@gmail.com>"]
 description = "Cargo Advent of Code Helper"
 license = "MIT/Apache-2.0"
