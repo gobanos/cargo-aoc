@@ -75,7 +75,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
             use super::*;
             use aoc_runner::{ArcStr, Runner};
             use std::marker::PhantomData;
-            use {Factory, #trait_name};
+            use crate::{Factory, #trait_name};
 
             impl #trait_name for Factory {
                 fn #mod_name(input: ArcStr) -> Box<Runner> {

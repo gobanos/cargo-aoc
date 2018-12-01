@@ -76,7 +76,7 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
         }).collect();
 
     quote! {
-        pub use aoc_factory::*;
+        pub use self::aoc_factory::*;
 
         #[allow(unused)]
         mod aoc_factory {
