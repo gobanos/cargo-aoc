@@ -30,6 +30,10 @@ impl AsRef<[u8]> for ArcStr {
 
 pub trait Runner {
     fn gen(input: ArcStr) -> Self where Self: Sized;
+    fn try_gen(input: ArcStr) -> Result<Self, Box<dyn Error>> where Self: Sized {
+        Ok(Self::gen(input))
+    }
+
     fn run(&self) -> Box<dyn Display>;
     fn try_run(&self) -> Result<Box<dyn Display>, Box<dyn Error>> {
         Ok(self.run())
