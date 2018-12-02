@@ -5,6 +5,7 @@ use crate::AOC_RUNNER;
 use proc_macro as pm;
 use quote::quote;
 use syn::*;
+use utils::extract_result;
 
 pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
     let (day, part, name) = utils::extract_meta(args);
@@ -33,6 +34,12 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
         panic!()
     };
 
+    let (is_result, out_t) = if let Some(t) = extract_result(&*out_t) {
+        (true, Box::new(t))
+    } else {
+        (false, out_t)
+    };
+
     let def = AOC_RUNNER.with(|map| {
         let mut map = map
             .borrow_mut()
@@ -51,12 +58,25 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
 
         runner.with_solver(Solver::new(&fn_name, &out_t));
 
+        let run_result = if is_result {
+            quote! { #[run_result] }
+        } else {
+            quote!{}
+        };
+
         if let Some(generator) = &runner.generator {
             let gen_out_t = &generator.get_out_t();
             let gen_name = &generator.get_name();
+            let gen_result = if generator.is_result {
+                quote! { #[gen_result] }
+            } else {
+                quote!{}
+            };
 
             quote! {
                 #[runner(#fn_name, #gen_name)]
+                #gen_result
+                #run_result
                 pub struct RunnerStruct {
                     input: #gen_out_t,
                     output: PhantomData<#out_t>,
@@ -65,6 +85,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
         } else {
             quote! {
                 #[runner(#fn_name)]
+                #run_result
                 pub struct RunnerStruct {
                     input: ArcStr,
                     output: PhantomData<#out_t>,
@@ -85,11 +106,13 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
             use aoc_runner::{ArcStr, Runner};
             use aoc_runner_derive::Runner;
             use std::marker::PhantomData;
+            use std::error::Error;
+            use std::fmt::Display;
             use crate::{Factory, #trait_name};
 
             impl #trait_name for Factory {
-                fn #mod_name(input: ArcStr) -> Box<dyn Runner> {
-                    Box::new( RunnerStruct::gen(input) )
+                fn #mod_name(input: ArcStr) -> Result<Box<dyn Runner>, Box<dyn Error>> {
+                    Ok(Box::new( RunnerStruct::try_gen(input)? ))
                 }
             }
 

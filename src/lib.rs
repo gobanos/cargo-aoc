@@ -25,7 +25,10 @@ thread_local! {
     static AOC_RUNNER: Map = Map::new();
 }
 
-#[proc_macro_derive(Runner, attributes(runner, runner_type))]
+#[proc_macro_derive(
+    Runner,
+    attributes(runner, runner_type, gen_result, run_result)
+)]
 pub fn aoc_runner_derive(input: pm::TokenStream) -> pm::TokenStream {
     if is_rls() {
         let input: pm2::TokenStream = input.into();

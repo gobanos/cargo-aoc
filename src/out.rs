@@ -71,7 +71,7 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
 
             quote! {
                 pub trait #camel {
-                    fn #snake(input: ArcStr) -> Box<dyn Runner>;
+                    fn #snake(input: ArcStr) -> Result<Box<dyn Runner>, Box<dyn Error>>;
                 }
             }
         }).collect();
@@ -82,6 +82,7 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
         #[allow(unused)]
         mod aoc_factory {
             use aoc_runner::{Runner, ArcStr};
+            use std::error::Error;
 
             pub static YEAR : u32 = #year;
 
@@ -96,15 +97,27 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
     let body : pm2::TokenStream = infos.iter().map(|dp| {
         let identifier = to_snakecase(dp);
         let input = format!("../input/{}/day{}.txt", infos.year, dp.day.0);
-        let pattern = if let Some(n) = &dp.name {
-            format!(
-                "Day {} - Part {} - {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
-                dp.day.0, dp.part.0, n
+        let (pattern, err) = if let Some(n) = &dp.name {
+            (
+                format!(
+                    "Day {} - Part {} - {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
+                    dp.day.0, dp.part.0, n
+                ),
+                format! (
+                    "Day {} - Part {} - {}: FAILED while {{}}:\n{{:#?}}\n",
+                    dp.day.0, dp.part.0, n
+                )
             )
         } else {
-            format!(
-                "Day {} - Part {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
-                dp.day.0, dp.part.0
+            (
+                format!(
+                    "Day {} - Part {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
+                    dp.day.0, dp.part.0
+                ),
+                format! (
+                    "Day {} - Part {}: FAILED while {{}}:\n{{:#?}}\n",
+                    dp.day.0, dp.part.0
+                )
             )
         };
 
@@ -114,11 +127,21 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
                 use aoc_runner::ArcStr;
 
                 let start_time = Instant::now();
-                let runner = Factory::#identifier(ArcStr::from(include_str!(#input)));
-                let inter_time = Instant::now();
-                let result = runner.run();
-                let final_time = Instant::now();
-                println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
+
+                match Factory::#identifier(ArcStr::from(include_str!(#input))) {
+                    Ok(runner) => {
+                        let inter_time = Instant::now();
+
+                        match runner.try_run() {
+                            Ok(result) => {
+                                let final_time = Instant::now();
+                                println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
+                            },
+                            Err(e) => eprintln!(#err, "running", e)
+                        }
+                    },
+                    Err(e) => eprintln!(#err, "generating", e)
+                }
             }
         }
     }).collect();

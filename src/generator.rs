@@ -4,6 +4,7 @@ use crate::utils;
 use crate::AOC_RUNNER;
 use proc_macro as pm;
 use syn::*;
+use utils::extract_result;
 
 pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
     let (day, part, name) = utils::extract_meta(args);
@@ -26,7 +27,11 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
         panic!("cannot find output type for {}", fn_name)
     };
 
-    println!("{:#?}", out_t); // DEBUG
+    let (is_result, out_t) = if let Some(t) = extract_result(&*out_t) {
+        (true, Box::new(t))
+    } else {
+        (false, out_t)
+    };
 
     AOC_RUNNER.with(|map| {
         let mut map = map
@@ -40,7 +45,7 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
                     part: p,
                     name: name.clone(),
                 }).or_default();
-            runner.with_generator(Generator::new(&fn_name, &out_t));
+            runner.with_generator(Generator::new(&fn_name, &out_t, is_result));
         };
 
         if let Some(p) = part {

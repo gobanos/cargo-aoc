@@ -32,13 +32,15 @@ impl Runner {
 pub(crate) struct Generator {
     name: String,
     out_t: String,
+    pub is_result: bool,
 }
 
 impl Generator {
-    pub fn new(name: &syn::Ident, out_t: &syn::Type) -> Generator {
+    pub fn new(name: &syn::Ident, out_t: &syn::Type, is_result: bool) -> Generator {
         Generator {
             name: name.to_string(),
             out_t: quote! { #out_t }.to_string(),
+            is_result,
         }
     }
 

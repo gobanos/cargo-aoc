@@ -22,6 +22,32 @@ pub(crate) fn extract_meta(
     (day, part, name)
 }
 
+pub(crate) fn extract_result(ty: &syn::Type) -> Option<syn::Type> {
+    use syn::*;
+
+    if let Type::Path(TypePath {
+        path: Path { segments: s, .. },
+        ..
+    }) = ty
+    {
+        if let Some(p) = s.last() {
+            let ps = p.value();
+
+            if ps.ident == "Result" {
+                if let PathArguments::AngleBracketed(a) = &ps.arguments {
+                    if let Some(arg) = a.args.first() {
+                        if let GenericArgument::Type(t) = arg.value() {
+                            return Some(t.clone());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
 pub(crate) fn to_snakecase(dp: &DayPart) -> syn::Ident {
     let DayPart { day, part, name } = dp;
     let name = if let Some(name) = name {
