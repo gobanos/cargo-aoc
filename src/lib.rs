@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use std::sync::Arc;
+use std::error::Error;
 
 #[inline]
 pub fn identity<T>(t: T) -> T {
@@ -29,5 +30,8 @@ impl AsRef<[u8]> for ArcStr {
 
 pub trait Runner {
     fn gen(input: ArcStr) -> Self where Self: Sized;
-    fn run(&self) -> Box<Display>;
+    fn run(&self) -> Box<dyn Display>;
+    fn try_run(&self) -> Result<Box<dyn Display>, Box<dyn Error>> {
+        Ok(self.run())
+    }
 }
