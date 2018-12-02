@@ -44,3 +44,18 @@ pub(crate) fn to_camelcase(dp: &DayPart) -> syn::Ident {
 
     syn::Ident::new(&name, pm::Span::call_site().into())
 }
+
+pub(crate) fn is_rls() -> bool {
+    use std::env;
+    use std::path;
+
+    let p = match env::var("CARGO") {
+        Ok(p) => p,
+        Err(_) => return false,
+    };
+
+    path::Path::new(&p)
+        .file_stem()
+        .map(|file| file == "rls")
+        .unwrap_or(false)
+}
