@@ -23,8 +23,10 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
     let out_t = if let ReturnType::Type(_, p) = decl.output {
         p
     } else {
-        panic!()
+        panic!("cannot find output type for {}", fn_name)
     };
+
+    println!("{:#?}", out_t); // DEBUG
 
     AOC_RUNNER.with(|map| {
         let mut map = map
