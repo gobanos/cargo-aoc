@@ -14,7 +14,7 @@ pub(crate) fn extract_meta(
     });
 
     let day: pm::TokenStream = idents.next().expect("Couldn't find day");
-    let day: syn::Ident = syn::parse(day).unwrap();
+    let day: syn::Ident = syn::parse(day).expect("failed to parse day");
 
     let part = idents.next().and_then(|i| syn::parse(i).ok());
     let name = idents.next().and_then(|i| syn::parse(i).ok());

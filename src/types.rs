@@ -47,7 +47,7 @@ impl Generator {
     }
 
     pub fn get_out_t(&self) -> pm2::TokenStream {
-        self.out_t.parse().unwrap()
+        self.out_t.parse().expect("failed to parse generator type")
     }
 }
 

@@ -7,7 +7,10 @@ use syn::*;
 
 pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
     let (day, part, name) = utils::extract_meta(args);
-    let day = day.to_string().parse().unwrap();
+    let day = day
+        .to_string()
+        .parse()
+        .expect("generators must have defined day");
     let part = part.and_then(|p| p.to_string().parse().ok());
     let name = name.map(|i| i.to_string());
 
@@ -24,7 +27,9 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
     };
 
     AOC_RUNNER.with(|map| {
-        let mut map = map.borrow_mut().unwrap();
+        let mut map = map
+            .borrow_mut()
+            .expect("failed to borrow shared map from generator");
 
         let mut register = |p: Part| {
             let runner = map

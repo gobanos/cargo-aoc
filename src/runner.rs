@@ -8,8 +8,15 @@ use syn::*;
 
 pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
     let (day, part, name) = utils::extract_meta(args);
-    let day = day.to_string().parse().unwrap();
-    let part = part.expect("missing part").to_string().parse().unwrap();
+    let day = day
+        .to_string()
+        .parse()
+        .expect("runners must have a defined day");
+    let part = part
+        .expect("runners must have a defined part")
+        .to_string()
+        .parse()
+        .expect("runners must have a defined part");
     let name = name.map(|i| i.to_string());
 
     let dp = DayPart { day, part, name };
@@ -27,7 +34,9 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
     };
 
     let def = AOC_RUNNER.with(|map| {
-        let mut map = map.borrow_mut().unwrap();
+        let mut map = map
+            .borrow_mut()
+            .expect("failed to borrow shared map from runner");
 
         let dp = dp.clone();
         let def = dp.without_name();

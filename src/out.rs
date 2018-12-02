@@ -20,32 +20,33 @@ enum MainInfos {
 }
 
 pub fn lib_impl(input: pm::TokenStream) -> pm::TokenStream {
-    let infos = parse_lib_infos(input).unwrap();
+    let infos = parse_lib_infos(input).expect("failed to parse lib infos");
 
     AOC_RUNNER.with(|map| {
-        let map = map.consume().unwrap();
+        let map = map.consume().expect("failed to consume map from lib");
 
         let year = infos.year;
 
-        write_infos(&map, year).unwrap();
+        write_infos(&map, year).expect("failed to write infos from lib");
 
         pm::TokenStream::from(headers(&map, year))
     })
 }
 
 pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
-    let infos = parse_main_infos(input).unwrap();
+    let infos = parse_main_infos(input).expect("failed to parse main infos");
 
     AOC_RUNNER.with(|map| {
-        let map = map.consume().unwrap();
+        let map = map.consume().expect("failed to consume map from main");
 
         let expanded = match infos {
             MainInfos::Ref { lib } => {
-                let infos = read_infos().unwrap();
+                let infos = read_infos().expect("failed to read infos from ref main");
                 body(&infos, Some(lib))
             }
             MainInfos::Standalone { year } => {
-                let infos = write_infos(&map, year).unwrap();
+                let infos =
+                    write_infos(&map, year).expect("failed to write infos from standalone main");
                 let headers = headers(&map, year);
                 let body = body(&infos, None);
 
