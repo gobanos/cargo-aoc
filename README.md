@@ -55,7 +55,7 @@ Generator functions are tagged `#[aoc_generator(dayX)]`.
 
 Because examples are worth a thousand words, lets take a look at [Year 2015, Day 2](https://adventofcode.com/2015/day/2) : 
 
-From the puzzle's description, we know that `[we] have a list of the dimensions (length l, width w, and height h) of each present`, each present on one line, representend like so: `{L}x{W}x{H}`.
+From the puzzle's description, we know that `[we] have a list of the dimensions (length l, width w, and height h) of each present`, each present on one line, represented like so: `{L}x{W}x{H}`.
 
 We might want to first parse the input and extract logical `Gift` structs out of it, like: 
 
