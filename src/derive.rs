@@ -2,13 +2,14 @@ use proc_macro as pm;
 use quote::quote;
 use std::error;
 use syn;
+use types::SpecialType;
 
 #[derive(Debug)]
 struct AocMeta {
     runner: syn::Ident,
     generator: Option<syn::Ident>,
-    gen_result: bool,
-    run_result: bool,
+    gen_special: Option<SpecialType>,
+    run_special: Option<SpecialType>,
 }
 
 impl AocMeta {
@@ -17,8 +18,8 @@ impl AocMeta {
         struct Builder {
             runner: Option<syn::Ident>,
             generator: Option<syn::Ident>,
-            gen_result: Option<bool>,
-            run_result: Option<bool>,
+            gen_special: Option<SpecialType>,
+            run_special: Option<SpecialType>,
         }
 
         let mut builder = Builder::default();
@@ -35,15 +36,15 @@ impl AocMeta {
                 } else {
                     builder.generator = Some(i);
                 },
-                MetaCommand::GenResult => if builder.gen_result.is_some() {
-                    return Err(From::from("duplicate command: gen_result"));
+                MetaCommand::GenSpecial(t) => if builder.gen_special.is_some() {
+                    return Err(From::from("duplicate command: gen_*"));
                 } else {
-                    builder.gen_result = Some(true);
+                    builder.gen_special = Some(t);
                 },
-                MetaCommand::RunResult => if builder.run_result.is_some() {
-                    return Err(From::from("duplicate command: run_result"));
+                MetaCommand::RunSpecial(t) => if builder.run_special.is_some() {
+                    return Err(From::from("duplicate command: run_*"));
                 } else {
-                    builder.run_result = Some(true);
+                    builder.run_special = Some(t);
                 },
             }
         }
@@ -52,8 +53,8 @@ impl AocMeta {
             Ok(AocMeta {
                 runner,
                 generator: builder.generator,
-                gen_result: builder.gen_result.unwrap_or_default(),
-                run_result: builder.run_result.unwrap_or_default(),
+                gen_special: builder.gen_special,
+                run_special: builder.run_special,
             })
         } else {
             Err(From::from("no runner provided"))
@@ -65,8 +66,8 @@ impl AocMeta {
 enum MetaCommand {
     Runner(syn::Ident),
     Generator(syn::Ident),
-    GenResult,
-    RunResult,
+    GenSpecial(SpecialType),
+    RunSpecial(SpecialType),
 }
 
 impl MetaCommand {
@@ -99,9 +100,13 @@ impl MetaCommand {
                 None
             }
         } else if ident == "run_result" {
-            Some(vec![MetaCommand::RunResult])
+            Some(vec![MetaCommand::RunSpecial(SpecialType::Result)])
+        } else if ident == "run_option" {
+            Some(vec![MetaCommand::RunSpecial(SpecialType::Option)])
         } else if ident == "gen_result" {
-            Some(vec![MetaCommand::GenResult])
+            Some(vec![MetaCommand::GenSpecial(SpecialType::Result)])
+        } else if ident == "gen_option" {
+            Some(vec![MetaCommand::GenSpecial(SpecialType::Option)])
         } else {
             None
         }
@@ -131,7 +136,12 @@ pub fn aoc_runner_derive_impl(input: pm::TokenStream) -> pm::TokenStream {
         }
     };
 
-    let gen = if aoc_meta.gen_result {
+    let gen = if let Some(t) = aoc_meta.gen_special {
+        let input = match t {
+            SpecialType::Result => quote! { #input? },
+            SpecialType::Option => quote! { #input.ok_or("generator produce no value")? },
+        };
+
         quote! {
             fn gen(input: ArcStr) -> Self {
                 Self::try_gen(input).expect("failed to generate input")
@@ -139,7 +149,7 @@ pub fn aoc_runner_derive_impl(input: pm::TokenStream) -> pm::TokenStream {
 
             fn try_gen(input: ArcStr) -> Result<Self, Box<dyn Error>> {
                 Ok( #name {
-                    #input?,
+                    #input,
                     output: PhantomData,
                 } )
             }
@@ -155,14 +165,21 @@ pub fn aoc_runner_derive_impl(input: pm::TokenStream) -> pm::TokenStream {
         }
     };
 
-    let run = if aoc_meta.run_result {
+    let run = if let Some(t) = aoc_meta.run_special {
+        let runner = match t {
+            SpecialType::Result => quote! { #fn_runner(self.input.as_ref())? },
+            SpecialType::Option => {
+                quote! { #fn_runner(self.input.as_ref()).ok_or("runner produce no value")? }
+            }
+        };
+
         quote! {
             fn run(&self) -> Box<dyn Display> {
                 self.try_run().expect("failed to run")
             }
 
             fn try_run(&self) -> Result<Box<dyn Display>, Box<dyn Error>> {
-                Ok( Box::new( #fn_runner(self.input.as_ref()) ? ) )
+                Ok( Box::new( #runner ) )
             }
         }
     } else {

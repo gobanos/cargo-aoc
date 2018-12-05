@@ -28,19 +28,29 @@ impl Runner {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub(crate) enum SpecialType {
+    Result,
+    Option,
+}
+
 #[derive(Clone, Debug)]
 pub(crate) struct Generator {
     name: String,
     out_t: String,
-    pub is_result: bool,
+    pub special_type: Option<SpecialType>,
 }
 
 impl Generator {
-    pub fn new(name: &syn::Ident, out_t: &syn::Type, is_result: bool) -> Generator {
+    pub fn new(
+        name: &syn::Ident,
+        out_t: &syn::Type,
+        special_type: Option<SpecialType>,
+    ) -> Generator {
         Generator {
             name: name.to_string(),
             out_t: quote! { #out_t }.to_string(),
-            is_result,
+            special_type,
         }
     }
 

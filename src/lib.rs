@@ -27,7 +27,14 @@ thread_local! {
 
 #[proc_macro_derive(
     Runner,
-    attributes(runner, runner_type, gen_result, run_result)
+    attributes(
+        runner,
+        runner_type,
+        gen_result,
+        gen_option,
+        run_result,
+        run_option
+    )
 )]
 pub fn aoc_runner_derive(input: pm::TokenStream) -> pm::TokenStream {
     if is_rls() {

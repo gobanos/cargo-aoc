@@ -5,6 +5,7 @@ use crate::AOC_RUNNER;
 use proc_macro as pm;
 use quote::quote;
 use syn::*;
+use types::SpecialType;
 use utils::extract_result;
 
 pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
@@ -34,10 +35,10 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
         panic!()
     };
 
-    let (is_result, out_t) = if let Some(t) = extract_result(&*out_t) {
-        (true, Box::new(t))
+    let (special_type, out_t) = if let Some((ty, inner)) = extract_result(&*out_t) {
+        (Some(ty), Box::new(inner))
     } else {
-        (false, out_t)
+        (None, out_t)
     };
 
     let def = AOC_RUNNER.with(|map| {
@@ -58,25 +59,25 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
 
         runner.with_solver(Solver::new(&fn_name, &out_t));
 
-        let run_result = if is_result {
-            quote! { #[run_result] }
-        } else {
-            quote!{}
+        let run_special = match special_type {
+            Some(SpecialType::Result) => quote! { #[run_result] },
+            Some(SpecialType::Option) => quote! { #[run_option] },
+            None => quote!{},
         };
 
         if let Some(generator) = &runner.generator {
             let gen_out_t = &generator.get_out_t();
             let gen_name = &generator.get_name();
-            let gen_result = if generator.is_result {
-                quote! { #[gen_result] }
-            } else {
-                quote!{}
+            let gen_special = match generator.special_type {
+                Some(SpecialType::Result) => quote! { #[gen_result] },
+                Some(SpecialType::Option) => quote! { #[gen_option] },
+                None => quote!{},
             };
 
             quote! {
                 #[runner(#fn_name, #gen_name)]
-                #gen_result
-                #run_result
+                #gen_special
+                #run_special
                 pub struct RunnerStruct {
                     input: #gen_out_t,
                     output: PhantomData<#out_t>,
@@ -85,7 +86,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
         } else {
             quote! {
                 #[runner(#fn_name)]
-                #run_result
+                #run_special
                 pub struct RunnerStruct {
                     input: ArcStr,
                     output: PhantomData<#out_t>,

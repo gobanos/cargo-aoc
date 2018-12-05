@@ -1,6 +1,7 @@
 use aoc_runner_internal::DayPart;
 use proc_macro as pm;
 use syn;
+use types::SpecialType;
 
 pub(crate) fn extract_meta(
     args: pm::TokenStream,
@@ -22,7 +23,7 @@ pub(crate) fn extract_meta(
     (day, part, name)
 }
 
-pub(crate) fn extract_result(ty: &syn::Type) -> Option<syn::Type> {
+pub(crate) fn extract_result(ty: &syn::Type) -> Option<(SpecialType, syn::Type)> {
     use syn::*;
 
     if let Type::Path(TypePath {
@@ -37,7 +38,15 @@ pub(crate) fn extract_result(ty: &syn::Type) -> Option<syn::Type> {
                 if let PathArguments::AngleBracketed(a) = &ps.arguments {
                     if let Some(arg) = a.args.first() {
                         if let GenericArgument::Type(t) = arg.value() {
-                            return Some(t.clone());
+                            return Some((SpecialType::Result, t.clone()));
+                        }
+                    }
+                }
+            } else if ps.ident == "Option" {
+                if let PathArguments::AngleBracketed(a) = &ps.arguments {
+                    if let Some(arg) = a.args.first() {
+                        if let GenericArgument::Type(t) = arg.value() {
+                            return Some((SpecialType::Option, t.clone()));
                         }
                     }
                 }
