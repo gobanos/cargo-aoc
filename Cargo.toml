@@ -1,6 +1,6 @@
 [package]
 name = "aoc-runner"
-version = "0.2.0-alpha1"
+version = "0.2.0"
 authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
 description = "A runner for the Advent of Code"
 license = "MIT/Apache-2.0"
