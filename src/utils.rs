@@ -1,4 +1,4 @@
-use aoc_runner_internal::DayPart;
+use aoc_runner_internal::{Day, DayPart};
 use proc_macro as pm;
 use syn;
 use types::SpecialType;
@@ -78,6 +78,10 @@ pub(crate) fn to_camelcase(dp: &DayPart) -> syn::Ident {
     };
 
     syn::Ident::new(&name, pm::Span::call_site().into())
+}
+
+pub(crate) fn to_input(d: Day) -> syn::Ident {
+    syn::Ident::new(&format!("input_day{}", d.0), pm::Span::call_site().into())
 }
 
 pub(crate) fn is_rls() -> bool {

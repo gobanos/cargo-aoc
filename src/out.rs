@@ -1,7 +1,6 @@
-use aoc_runner_internal::DayParts;
-use aoc_runner_internal::DayPartsBuilder;
+use aoc_runner_internal::{DayParts, DayPartsBuilder};
 use crate::map::InnerMap;
-use crate::utils::{to_camelcase, to_snakecase};
+use crate::utils::{to_camelcase, to_input, to_snakecase};
 use crate::AOC_RUNNER;
 use proc_macro as pm;
 use proc_macro2 as pm2;
@@ -70,6 +69,7 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
             let camel = to_camelcase(&dp);
 
             quote! {
+                #[doc(hidden)]
                 pub trait #camel {
                     fn #snake(input: ArcStr) -> Result<Box<dyn Runner>, Box<dyn Error>>;
                 }
@@ -84,8 +84,10 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
             use aoc_runner::{Runner, ArcStr};
             use std::error::Error;
 
+            #[doc(hidden)]
             pub static YEAR : u32 = #year;
 
+            #[doc(hidden)]
             pub struct Factory();
 
             #traits_impl
@@ -94,9 +96,21 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
 }
 
 fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
+    let mut days: Vec<_> = infos.iter().map(|dp| dp.day).collect();
+    days.sort();
+    days.dedup();
+
+    let inputs: pm2::TokenStream = days
+        .into_iter()
+        .map(|d| {
+            let name = to_input(d);
+            let input = format!("../input/{}/day{}.txt", infos.year, d.0);
+
+            quote! { let #name = ArcStr::from(include_str!(#input)); }
+        }).collect();
+
     let body : pm2::TokenStream = infos.iter().map(|dp| {
         let identifier = to_snakecase(dp);
-        let input = format!("../input/{}/day{}.txt", infos.year, dp.day.0);
         let (pattern, err) = if let Some(n) = &dp.name {
             (
                 format!(
@@ -121,14 +135,13 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
             )
         };
 
+        let input = to_input(dp.day);
+
         quote! {
             {
-                use std::time::{Duration, Instant};
-                use aoc_runner::ArcStr;
-
                 let start_time = Instant::now();
 
-                match Factory::#identifier(ArcStr::from(include_str!(#input))) {
+                match Factory::#identifier(#input.clone()) {
                     Ok(runner) => {
                         let inter_time = Instant::now();
 
@@ -151,6 +164,11 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
             use #lib::*;
 
             fn main() {
+                use aoc_runner::ArcStr;
+                use std::time::{Duration, Instant};
+
+                #inputs
+
                 println!("Advent of code {}", YEAR);
 
                 #body
@@ -159,6 +177,12 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
     } else {
         quote! {
             fn main() {
+                use aoc_runner::ArcStr;
+                use std::time::{Duration, Instant};
+
+
+                #inputs
+
                 println!("Advent of code {}", YEAR);
 
                 #body
