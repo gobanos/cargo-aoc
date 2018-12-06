@@ -1,11 +1,8 @@
 
     {
-        use std::time::Instant;
-        use aoc_runner::ArcStr;
-
         let start_time = Instant::now();
 
-        match Factory::{RUNNER_NAME}(ArcStr::from(include_str!("../../../../input/{INPUT}"))) {
+        match Factory::{RUNNER_NAME}(input_day{DAY}.clone()) {
             Ok(runner) => {
                 let inter_time = Instant::now();
 
