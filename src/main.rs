@@ -21,7 +21,7 @@ use app::AOCApp;
 fn main() {
     // Parses the attributes (CLAP)
     let matches = App::new("cargo-aoc")
-        .version("1.0")
+        .version("0.2.0")
         .about("Cargo helper for Advent of Code")
         .author("gobanos <gregory.obanos@gmail.com>")
         .arg(Arg::with_name("dummy").hidden(true).possible_value("aoc"))
@@ -35,6 +35,10 @@ fn main() {
                 .short("p")
                 .help("Specifies the part. Defaults to both parts.")
                 .takes_value(true),
+        ).arg(
+            Arg::with_name("profile")
+                .short("x")
+                .help("Add debug info for profiling tools."),
         ).subcommand(
             SubCommand::with_name("bench")
                 .about("Benchmark your solutions")
@@ -52,6 +56,14 @@ fn main() {
                     Arg::with_name("open")
                         .short("o")
                         .help("Opens the benchmark information in the browser"),
+                ).arg(
+                    Arg::with_name("generator")
+                        .short("g")
+                        .help("Also benchmark generator functions."),
+                ).arg(
+                    Arg::with_name("profile")
+                        .short("x")
+                        .help("Add debug info for profiling tools."),
                 ),
         ).subcommand(
             SubCommand::with_name("credentials")
