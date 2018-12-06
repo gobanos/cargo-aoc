@@ -156,16 +156,15 @@ impl AOCApp {
         let cargo_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/template/Cargo-run.toml.tpl"
-        ))
-            .replace("{CRATE_NAME}", &pm.name)
-            .replace(
-                "{PROFILE}",
-                if args.is_present("profile") {
-                    "[profile.release]\ndebug = true"
-                } else {
-                    ""
-                },
-            );
+        )).replace("{CRATE_NAME}", &pm.name)
+        .replace(
+            "{PROFILE}",
+            if args.is_present("profile") {
+                "[profile.release]\ndebug = true"
+            } else {
+                ""
+            },
+        );
 
         let template = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -208,9 +207,9 @@ impl AOCApp {
             env!("CARGO_MANIFEST_DIR"),
             "/template/src/main.rs.tpl"
         )).replace("{CRATE_SLUG}", &pm.slug)
-            .replace("{YEAR}", &day_parts.year.to_string())
-            .replace("{INPUT}", &template_input(day, year))
-            .replace("{BODY}", &body);
+        .replace("{YEAR}", &day_parts.year.to_string())
+        .replace("{INPUT}", &template_input(day, year))
+        .replace("{BODY}", &body);
 
         fs::create_dir_all("target/aoc/aoc-autobuild/src")
             .expect("failed to create autobuild directory");
@@ -254,14 +253,14 @@ impl AOCApp {
             env!("CARGO_MANIFEST_DIR"),
             "/template/Cargo-bench.toml.tpl"
         )).replace("{CRATE_NAME}", &pm.name)
-            .replace(
-                "{PROFILE}",
-                if args.is_present("profile") {
-                    "[profile.release]\ndebug = true"
-                } else {
-                    ""
-                },
-            );
+        .replace(
+            "{PROFILE}",
+            if args.is_present("profile") {
+                "[profile.release]\ndebug = true"
+            } else {
+                ""
+            },
+        );
 
         let bench_tpl = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -397,12 +396,14 @@ impl AOCApp {
             .replace("{CRATE_SLUG}", &pm.slug)
             .replace("{PARTS}", &body)
             .replace("{GENS}", &gens)
-            .replace("{BENCHMARKS}", if args.is_present("generator") {
-                "aoc_benchmark, input_benchmark"
-            } else {
-                "aoc_benchmark"
-            })
-            .replace("{INPUTS}", &template_input(day, year));
+            .replace(
+                "{BENCHMARKS}",
+                if args.is_present("generator") {
+                    "aoc_benchmark, input_benchmark"
+                } else {
+                    "aoc_benchmark"
+                },
+            ).replace("{INPUTS}", &template_input(day, year));
 
         fs::create_dir_all("target/aoc/aoc-autobench/benches")
             .expect("failed to create autobench directory");
@@ -440,9 +441,8 @@ impl AOCApp {
 
 fn template_input(day: Day, year: u32) -> String {
     include_str!(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/template/input.rs.tpl"
-            ))
-        .replace("{DAY}", &day.0.to_string())
-        .replace("{YEAR}", &year.to_string())
+        env!("CARGO_MANIFEST_DIR"),
+        "/template/input.rs.tpl"
+    )).replace("{DAY}", &day.0.to_string())
+    .replace("{YEAR}", &year.to_string())
 }
