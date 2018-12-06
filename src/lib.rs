@@ -7,7 +7,6 @@ extern crate proc_macro2;
 extern crate quote;
 extern crate syn;
 
-mod derive;
 mod generator;
 mod map;
 mod out;
@@ -25,19 +24,6 @@ thread_local! {
     static AOC_RUNNER: Map = Map::new();
 }
 
-#[proc_macro_derive(Runner, attributes(runner, runner_type))]
-pub fn aoc_runner_derive(input: pm::TokenStream) -> pm::TokenStream {
-    if is_rls() {
-        let input: pm2::TokenStream = input.into();
-        return pm::TokenStream::from(quote! {
-            #[allow(unused)]
-            #input
-        });
-    }
-
-    derive::aoc_runner_derive_impl(input)
-}
-
 #[proc_macro_attribute]
 /// # Solution meta
 ///
@@ -49,6 +35,15 @@ pub fn aoc_runner_derive(input: pm::TokenStream) -> pm::TokenStream {
 ///
 /// The function must take a single parameter : a `&str` or a `&[u8]`, unless you use a [generator]
 /// and return any type implementing `Display`.
+///
+/// ## Results & Options
+///
+/// Since 0.2.0, you can output `Result` & `Option` from solution function, with the following constraints :
+///  - the output type must be named `Result` or `Option`, `type CustomResult<T> = Result<T, CustomError>;` cannot be used in return position.
+///  - the first generic parameter must implement `Display`
+///  - for `Result`s, the error must implement `Into<std::error::Error>`
+///
+/// You still can use a path before the `Result`/`Option`, like this : `std::io::Result<i32>`
 ///
 /// [generator]: attr.aoc_generator.html
 pub fn aoc(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
@@ -77,6 +72,16 @@ pub fn aoc(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
 /// The function must take a single parameter : a `&str` or a `&[u8]`, and output any sized type.
 ///
 /// The corresponding solutions now take any parameter for which `AsRef` is implemented.
+/// Tip: you can wrap your output with a `Box<T>`, which implements `AsRef<T> for Box<T>`
+///
+/// ## Results & Options
+///
+/// Since 0.2.0, you can output `Result` & `Option` from generator function, with the following constraints :
+///  - the output type must be named `Result` or `Option`, `type CustomResult<T> = Result<T, CustomError>;` cannot be used in return position.
+///  - the first generic parameter must implement `AsRef`
+///  - for `Result`s, the error must implement `Into<std::error::Error>`
+///
+/// You still can use a path before the `Result`/`Option`, like this : `std::io::Result<i32>`
 ///
 /// ## Note
 /// A generator must be declared before it's solutions.

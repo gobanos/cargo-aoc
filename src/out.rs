@@ -1,7 +1,6 @@
-use aoc_runner_internal::DayParts;
-use aoc_runner_internal::DayPartsBuilder;
+use aoc_runner_internal::{DayParts, DayPartsBuilder};
 use crate::map::InnerMap;
-use crate::utils::{to_camelcase, to_snakecase};
+use crate::utils::{to_camelcase, to_input, to_snakecase};
 use crate::AOC_RUNNER;
 use proc_macro as pm;
 use proc_macro2 as pm2;
@@ -70,8 +69,9 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
             let camel = to_camelcase(&dp);
 
             quote! {
+                #[doc(hidden)]
                 pub trait #camel {
-                    fn #snake(input: ArcStr) -> Box<dyn Runner>;
+                    fn #snake(input: ArcStr) -> Result<Box<dyn Runner>, Box<dyn Error>>;
                 }
             }
         }).collect();
@@ -82,9 +82,12 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
         #[allow(unused)]
         mod aoc_factory {
             use aoc_runner::{Runner, ArcStr};
+            use std::error::Error;
 
+            #[doc(hidden)]
             pub static YEAR : u32 = #year;
 
+            #[doc(hidden)]
             pub struct Factory();
 
             #traits_impl
@@ -93,32 +96,65 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
 }
 
 fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
+    let mut days: Vec<_> = infos.iter().map(|dp| dp.day).collect();
+    days.sort();
+    days.dedup();
+
+    let inputs: pm2::TokenStream = days
+        .into_iter()
+        .map(|d| {
+            let name = to_input(d);
+            let input = format!("../input/{}/day{}.txt", infos.year, d.0);
+
+            quote! { let #name = ArcStr::from(include_str!(#input)); }
+        }).collect();
+
     let body : pm2::TokenStream = infos.iter().map(|dp| {
         let identifier = to_snakecase(dp);
-        let input = format!("../input/{}/day{}.txt", infos.year, dp.day.0);
-        let pattern = if let Some(n) = &dp.name {
-            format!(
-                "Day {} - Part {} - {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
-                dp.day.0, dp.part.0, n
+        let (pattern, err) = if let Some(n) = &dp.name {
+            (
+                format!(
+                    "Day {} - Part {} - {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
+                    dp.day.0, dp.part.0, n
+                ),
+                format! (
+                    "Day {} - Part {} - {}: FAILED while {{}}:\n{{:#?}}\n",
+                    dp.day.0, dp.part.0, n
+                )
             )
         } else {
-            format!(
-                "Day {} - Part {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
-                dp.day.0, dp.part.0
+            (
+                format!(
+                    "Day {} - Part {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
+                    dp.day.0, dp.part.0
+                ),
+                format! (
+                    "Day {} - Part {}: FAILED while {{}}:\n{{:#?}}\n",
+                    dp.day.0, dp.part.0
+                )
             )
         };
 
+        let input = to_input(dp.day);
+
         quote! {
             {
-                use std::time::{Duration, Instant};
-                use aoc_runner::ArcStr;
-
                 let start_time = Instant::now();
-                let runner = Factory::#identifier(ArcStr::from(include_str!(#input)));
-                let inter_time = Instant::now();
-                let result = runner.run();
-                let final_time = Instant::now();
-                println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
+
+                match Factory::#identifier(#input.clone()) {
+                    Ok(runner) => {
+                        let inter_time = Instant::now();
+
+                        match runner.try_run() {
+                            Ok(result) => {
+                                let final_time = Instant::now();
+                                println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
+                            },
+                            Err(e) => eprintln!(#err, "running", e)
+                        }
+                    },
+                    Err(e) => eprintln!(#err, "generating", e)
+                }
             }
         }
     }).collect();
@@ -128,6 +164,11 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
             use #lib::*;
 
             fn main() {
+                use aoc_runner::ArcStr;
+                use std::time::{Duration, Instant};
+
+                #inputs
+
                 println!("Advent of code {}", YEAR);
 
                 #body
@@ -136,6 +177,12 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
     } else {
         quote! {
             fn main() {
+                use aoc_runner::ArcStr;
+                use std::time::{Duration, Instant};
+
+
+                #inputs
+
                 println!("Advent of code {}", YEAR);
 
                 #body

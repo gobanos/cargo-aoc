@@ -1,6 +1,7 @@
-use aoc_runner_internal::DayPart;
+use aoc_runner_internal::{Day, DayPart};
 use proc_macro as pm;
 use syn;
+use types::SpecialType;
 
 pub(crate) fn extract_meta(
     args: pm::TokenStream,
@@ -20,6 +21,40 @@ pub(crate) fn extract_meta(
     let name = idents.next().and_then(|i| syn::parse(i).ok());
 
     (day, part, name)
+}
+
+pub(crate) fn extract_result(ty: &syn::Type) -> Option<(SpecialType, syn::Type)> {
+    use syn::*;
+
+    if let Type::Path(TypePath {
+        path: Path { segments: s, .. },
+        ..
+    }) = ty
+    {
+        if let Some(p) = s.last() {
+            let ps = p.value();
+
+            if ps.ident == "Result" {
+                if let PathArguments::AngleBracketed(a) = &ps.arguments {
+                    if let Some(arg) = a.args.first() {
+                        if let GenericArgument::Type(t) = arg.value() {
+                            return Some((SpecialType::Result, t.clone()));
+                        }
+                    }
+                }
+            } else if ps.ident == "Option" {
+                if let PathArguments::AngleBracketed(a) = &ps.arguments {
+                    if let Some(arg) = a.args.first() {
+                        if let GenericArgument::Type(t) = arg.value() {
+                            return Some((SpecialType::Option, t.clone()));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
 }
 
 pub(crate) fn to_snakecase(dp: &DayPart) -> syn::Ident {
@@ -43,6 +78,10 @@ pub(crate) fn to_camelcase(dp: &DayPart) -> syn::Ident {
     };
 
     syn::Ident::new(&name, pm::Span::call_site().into())
+}
+
+pub(crate) fn to_input(d: Day) -> syn::Ident {
+    syn::Ident::new(&format!("input_day{}", d.0), pm::Span::call_site().into())
 }
 
 pub(crate) fn is_rls() -> bool {

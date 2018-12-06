@@ -23,7 +23,13 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
     let out_t = if let ReturnType::Type(_, p) = decl.output {
         p
     } else {
-        panic!()
+        panic!("cannot find output type for {}", fn_name)
+    };
+
+    let (special_type, out_t) = if let Some((ty, inner)) = utils::extract_result(&*out_t) {
+        (Some(ty), Box::new(inner))
+    } else {
+        (None, out_t)
     };
 
     AOC_RUNNER.with(|map| {
@@ -38,7 +44,7 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
                     part: p,
                     name: name.clone(),
                 }).or_default();
-            runner.with_generator(Generator::new(&fn_name, &out_t));
+            runner.with_generator(Generator::new(&fn_name, &out_t, special_type));
         };
 
         if let Some(p) = part {

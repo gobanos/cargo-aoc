@@ -28,17 +28,29 @@ impl Runner {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub(crate) enum SpecialType {
+    Result,
+    Option,
+}
+
 #[derive(Clone, Debug)]
 pub(crate) struct Generator {
     name: String,
     out_t: String,
+    pub special_type: Option<SpecialType>,
 }
 
 impl Generator {
-    pub fn new(name: &syn::Ident, out_t: &syn::Type) -> Generator {
+    pub fn new(
+        name: &syn::Ident,
+        out_t: &syn::Type,
+        special_type: Option<SpecialType>,
+    ) -> Generator {
         Generator {
             name: name.to_string(),
             out_t: quote! { #out_t }.to_string(),
+            special_type,
         }
     }
 
@@ -54,14 +66,20 @@ impl Generator {
 #[derive(Clone, Debug)]
 pub(crate) struct Solver {
     name: String,
-    out_t: String,
+    //    out_t: String,
+    pub special_type: Option<SpecialType>,
 }
 
 impl Solver {
-    pub fn new(name: &syn::Ident, out_t: &syn::Type) -> Solver {
+    pub fn new(name: &syn::Ident, _out_t: &syn::Type, special_type: Option<SpecialType>) -> Solver {
         Solver {
             name: name.to_string(),
-            out_t: quote! { #out_t }.to_string(),
+            //            out_t: quote! { #out_t }.to_string(),
+            special_type,
         }
+    }
+
+    pub fn get_name(&self) -> syn::Ident {
+        syn::Ident::new(&self.name, pm::Span::call_site().into())
     }
 }
