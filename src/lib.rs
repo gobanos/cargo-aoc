@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt::Display;
 use std::sync::Arc;
+use std::borrow::Borrow;
 
 #[inline]
 pub fn identity<T>(t: T) -> T {
@@ -17,20 +18,20 @@ impl ArcStr {
     }
 }
 
-impl AsRef<str> for ArcStr {
-    fn as_ref(&self) -> &str {
-        self.0.as_ref()
+impl Borrow<str> for ArcStr {
+    fn borrow(&self) -> &str {
+        self.0.borrow()
     }
 }
 
-impl AsRef<[u8]> for ArcStr {
-    fn as_ref(&self) -> &[u8] {
+impl Borrow<[u8]> for ArcStr {
+    fn borrow(&self) -> &[u8] {
         self.0.as_bytes()
     }
 }
 
-impl AsRef<Arc<str>> for ArcStr {
-    fn as_ref(&self) -> &Arc<str> {
+impl Borrow<Arc<str>> for ArcStr {
+    fn borrow(&self) -> &Arc<str> {
         &self.0
     }
 }
