@@ -1,6 +1,6 @@
 [package]
 name = "aoc-runner-derive"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
 description = "Codegen for aoc-runner & others"
 license = "MIT/Apache-2.0"

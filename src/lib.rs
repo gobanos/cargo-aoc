@@ -71,14 +71,12 @@ pub fn aoc(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
 ///
 /// The function must take a single parameter : a `&str` or a `&[u8]`, and output any sized type.
 ///
-/// The corresponding solutions now take any parameter for which `AsRef` is implemented.
-/// Tip: you can wrap your output with a `Box<T>`, which implements `AsRef<T> for Box<T>`
+/// The corresponding solutions now take any parameter for which `Borrow` is implemented.
 ///
 /// ## Results & Options
 ///
 /// Since 0.2.0, you can output `Result` & `Option` from generator function, with the following constraints :
 ///  - the output type must be named `Result` or `Option`, `type CustomResult<T> = Result<T, CustomError>;` cannot be used in return position.
-///  - the first generic parameter must implement `AsRef`
 ///  - for `Result`s, the error must implement `Into<std::error::Error>`
 ///
 /// You still can use a path before the `Result`/`Option`, like this : `std::io::Result<i32>`

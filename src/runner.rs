@@ -96,6 +96,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
             use std::marker::PhantomData;
             use std::error::Error;
             use std::fmt::Display;
+            use std::borrow::Borrow;
             use crate::{Factory, #trait_name};
 
             impl #trait_name for Factory {
@@ -116,7 +117,7 @@ fn build_derive(solver: &Solver, generator: Option<&Generator>) -> pm2::TokenStr
     let input = if let Some(generator) = generator {
         let fn_generator = generator.get_name();
         quote! {
-            input: #fn_generator(input.as_ref())
+            input: #fn_generator(input.borrow())
         }
     } else {
         quote! {
@@ -155,9 +156,9 @@ fn build_derive(solver: &Solver, generator: Option<&Generator>) -> pm2::TokenStr
 
     let run = if let Some(t) = solver.special_type {
         let runner = match t {
-            SpecialType::Result => quote! { #fn_runner(self.input.as_ref())? },
+            SpecialType::Result => quote! { #fn_runner(self.input.borrow())? },
             SpecialType::Option => {
-                quote! { #fn_runner(self.input.as_ref()).ok_or("runner produce no value")? }
+                quote! { #fn_runner(self.input.borrow()).ok_or("runner produce no value")? }
             }
         };
 
@@ -171,17 +172,17 @@ fn build_derive(solver: &Solver, generator: Option<&Generator>) -> pm2::TokenStr
             }
 
             fn bench(&self, black_box: fn(&dyn Display)) {
-                black_box( &#fn_runner(self.input.as_ref()).unwrap() )
+                black_box( &#fn_runner(self.input.borrow()).unwrap() )
             }
         }
     } else {
         quote! {
             fn run(&self) -> Box<dyn Display> {
-                Box::new( #fn_runner(self.input.as_ref()) )
+                Box::new( #fn_runner(self.input.borrow()) )
             }
 
             fn bench(&self, black_box: fn(&dyn Display)) {
-                black_box( &#fn_runner(self.input.as_ref()) )
+                black_box( &#fn_runner(self.input.borrow()) )
             }
         }
     };
