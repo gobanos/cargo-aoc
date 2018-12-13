@@ -14,7 +14,7 @@ pub struct ArcStr(Arc<str>);
 impl ArcStr {
     #[inline]
     pub fn from(f: &str) -> ArcStr {
-        ArcStr(Arc::from(f.trim()))
+        ArcStr(Arc::from(f.trim_end_matches('\n')))
     }
 }
 
