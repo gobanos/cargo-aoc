@@ -5,7 +5,7 @@ authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
 
 [dependencies]
 {CRATE_NAME} = { path = "../../.." }
-aoc-runner = "0.2.1"
+aoc-runner = "0.2.2"
 
 [dev-dependencies]
 criterion = "0.2.5"
