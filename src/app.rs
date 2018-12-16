@@ -208,7 +208,7 @@ impl AOCApp {
             "/template/src/main.rs.tpl"
         )).replace("{CRATE_SLUG}", &pm.slug)
         .replace("{YEAR}", &day_parts.year.to_string())
-        .replace("{INPUT}", &template_input(day, year))
+        .replace("{INPUT}", &template_input(day, year, args.value_of("input")))
         .replace("{BODY}", &body);
 
         fs::create_dir_all("target/aoc/aoc-autobuild/src")
@@ -403,7 +403,7 @@ impl AOCApp {
                 } else {
                     "aoc_benchmark"
                 },
-            ).replace("{INPUTS}", &template_input(day, year));
+            ).replace("{INPUTS}", &template_input(day, year, args.value_of("input")));
 
         fs::create_dir_all("target/aoc/aoc-autobench/benches")
             .expect("failed to create autobench directory");
@@ -439,10 +439,20 @@ impl AOCApp {
     }
 }
 
-fn template_input(day: Day, year: u32) -> String {
+fn template_input(day: Day, year: u32, input: Option<&str>) -> String {
+    let day = day.0.to_string();
+    let path = input
+        .map(|p| {
+            if Path::new(p).is_relative() {
+                format!("../../../../{}", p)
+            } else {
+                p.to_string()
+            }
+        })
+        .unwrap_or_else(|| format!("../../../../input/{}/day{}.txt", year, &day));
     include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/template/input.rs.tpl"
-    )).replace("{DAY}", &day.0.to_string())
-    .replace("{YEAR}", &year.to_string())
+    )).replace("{PATH}", &path)
+    .replace("{DAY}", &day)
 }
