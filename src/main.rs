@@ -36,6 +36,11 @@ fn main() {
                 .help("Specifies the part. Defaults to both parts.")
                 .takes_value(true),
         ).arg(
+            Arg::with_name("input")
+                .short("i")
+                .help("Use an alternate input file.")
+                .takes_value(true),
+        ).arg(
             Arg::with_name("profile")
                 .short("x")
                 .help("Add debug info for profiling tools."),
@@ -52,6 +57,11 @@ fn main() {
                         .short("p")
                         .help("Specifies the part. Defaults to both parts.")
                         .takes_value(true),
+                ).arg(
+                    Arg::with_name("input")
+                    .short("i")
+                    .help("Use an alternate input file.")
+                    .takes_value(true),
                 ).arg(
                     Arg::with_name("open")
                         .short("o")
