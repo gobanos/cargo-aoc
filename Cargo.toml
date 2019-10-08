@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "aoc-runner",
+    "aoc-runner-derive",
+    "aoc-runner-internal",
+    "cargo-aoc",
+]
