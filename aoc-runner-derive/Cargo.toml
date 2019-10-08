@@ -1,0 +1,19 @@
+[package]
+name = "aoc-runner-derive"
+version = "0.2.2"
+authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
+description = "Codegen for aoc-runner & others"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/gobanos/aoc-runner-derive"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "0.15.22", features = ["extra-traits"] }
+quote = "0.6.10"
+proc-macro2 = "0.4.24"
+aoc-runner-internal = "0.1.0"
+
+[features]
+default = ["syn/full"]
