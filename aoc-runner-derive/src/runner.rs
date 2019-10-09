@@ -1,7 +1,7 @@
-use aoc_runner_internal::DayPart;
 use crate::types::{Generator, Solver, SpecialType};
 use crate::utils::{self, extract_result, to_camelcase, to_snakecase};
 use crate::AOC_RUNNER;
+use aoc_runner_internal::DayPart;
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
@@ -26,9 +26,8 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
 
     let original_fn = input.clone();
 
-    let fn_name = input.ident;
-    let decl = input.decl;
-    let out_t = if let ReturnType::Type(_, p) = decl.output {
+    let fn_name = input.sig.ident;
+    let out_t = if let ReturnType::Type(_, p) = input.sig.output {
         p
     } else {
         panic!()

@@ -4,4 +4,5 @@ members = [
     "aoc-runner-derive",
     "aoc-runner-internal",
     "cargo-aoc",
+    "examples"
 ]

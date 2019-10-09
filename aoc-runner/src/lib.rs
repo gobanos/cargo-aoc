@@ -1,7 +1,7 @@
+use std::borrow::Borrow;
 use std::error::Error;
 use std::fmt::Display;
 use std::sync::Arc;
-use std::borrow::Borrow;
 
 #[inline]
 pub fn identity<T>(t: T) -> T {

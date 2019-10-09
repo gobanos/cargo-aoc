@@ -42,7 +42,7 @@ impl CredentialsManager {
     pub fn get_session_token(&self) -> Result<String, String> {
         self.session_token
             .clone()
-            .ok_or("No session token available".into())
+            .ok_or_else(|| "No session token available".into())
     }
 
     /// Attemps to set the session token of the user in credentials.toml

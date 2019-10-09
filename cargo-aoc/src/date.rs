@@ -19,12 +19,12 @@ impl AOCDate {
         let day: u32 = matches
             .value_of("day")
             .map(|d| d.parse::<u32>().expect("Day not formatted correctly"))
-            .unwrap_or(today.day());
+            .unwrap_or_else(|| today.day());
 
         let year: i32 = matches
             .value_of("year")
             .map(|d| d.parse::<i32>().expect("Year not formatted correctly"))
-            .unwrap_or(today.year());
+            .unwrap_or_else(|| today.year());
 
         AOCDate { day, year }
     }

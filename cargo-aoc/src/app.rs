@@ -26,15 +26,12 @@ impl AOCApp {
     pub fn execute_credentials(&self, sub_args: &ArgMatches) {
         let mut creds_manager = CredentialsManager::new();
 
-        match sub_args.value_of("set") {
-            Some(new_session) => {
-                // Tries to set the session token
-                match creds_manager.set_session_token(new_session.into()) {
-                    Ok(()) => println!("Credentials sucessfully changed!"),
-                    Err(e) => println!("Error changing credentials: {}", e),
-                }
+        if let Some(new_session) = sub_args.value_of("set") {
+            // Tries to set the session token
+            match creds_manager.set_session_token(new_session.into()) {
+                Ok(()) => println!("Credentials sucessfully changed!"),
+                Err(e) => println!("Error changing credentials: {}", e),
             }
-            _ => {}
         }
 
         // Displays the stored session token
@@ -77,12 +74,12 @@ impl AOCApp {
                     let dir = date.directory();
                     // Creates the file-tree to store inputs
                     // TODO: Maybe use crate's infos to get its root in the filesystem ? 
-                    fs::create_dir_all(&dir).expect(&format!("Could not create input directory: {}", dir));
+                    fs::create_dir_all(&dir).unwrap_or_else(|_| panic!("Could not create input directory: {}", dir));
 
                     // Gets the body from the response and outputs everything to a file
                     let body = response.text().expect("Could not read content from input");
-                    let mut file = File::create(&filename).expect(&format!("Could not create file {}", filename));
-                    file.write(body.as_bytes()).expect(&format!("Could not write to {}", filename));
+                    let mut file = File::create(&filename).unwrap_or_else(|_| panic!("Could not create file {}", filename));
+                    file.write_all(body.as_bytes()).unwrap_or_else(|_| panic!("Could not write to {}", filename));
                 }
                 sc => println!(
                     "Could not find corresponding input. Are the day, year, and token correctly set ? Status: {}", sc
@@ -92,9 +89,9 @@ impl AOCApp {
         }
     }
 
-    fn download_input(&self, day: Day, year: u32) -> Result<(), Box<error::Error>> {
+    fn download_input(&self, day: Day, year: u32) -> Result<(), Box<dyn error::Error>> {
         let date = AOCDate {
-            day: day.0 as u32,
+            day: u32::from(day.0),
             year: year as i32,
         };
 
@@ -126,18 +123,18 @@ impl AOCApp {
                 // Gets the body from the response and outputs everything to a file
                 let body = response.text()?;
                 let mut file = File::create(&filename)?;
-                file.write(body.as_bytes())?;
+                file.write_all(body.as_bytes())?;
             }
-            sc => Err(format!(
+            sc => return Err(format!(
                 "Could not find corresponding input. Are the day, year, and token correctly set ? Status: {}\
-                Message: {}", sc, response.text().unwrap_or_else(|_| String::new())
-            ))?,
+                 Message: {}", sc, response.text().unwrap_or_else(|_| String::new())
+            ).into()),
         }
 
         Ok(())
     }
 
-    pub fn execute_default(&self, args: &ArgMatches) -> Result<(), Box<error::Error>> {
+    pub fn execute_default(&self, args: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
         let day: Option<Day> = args
             .value_of("day")
             .map(|d| d.parse().expect("Failed to parse day"));
@@ -156,7 +153,8 @@ impl AOCApp {
         let cargo_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/template/Cargo-run.toml.tpl"
-        )).replace("{CRATE_NAME}", &pm.name)
+        ))
+        .replace("{CRATE_NAME}", &pm.name)
         .replace(
             "{PROFILE}",
             if args.is_present("profile") {
@@ -198,7 +196,7 @@ impl AOCApp {
         }
 
         if body.is_empty() {
-            Err("No matching day & part found")?;
+            return Err("No matching day & part found".into());
         }
 
         self.download_input(day, year)?;
@@ -206,9 +204,13 @@ impl AOCApp {
         let main_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/template/src/main.rs.tpl"
-        )).replace("{CRATE_SLUG}", &pm.slug)
+        ))
+        .replace("{CRATE_SLUG}", &pm.slug)
         .replace("{YEAR}", &day_parts.year.to_string())
-        .replace("{INPUT}", &template_input(day, year, args.value_of("input")))
+        .replace(
+            "{INPUT}",
+            &template_input(day, year, args.value_of("input")),
+        )
         .replace("{BODY}", &body);
 
         fs::create_dir_all("target/aoc/aoc-autobuild/src")
@@ -233,7 +235,7 @@ impl AOCApp {
         Ok(())
     }
 
-    pub fn execute_bench(&self, args: &ArgMatches) -> Result<(), Box<error::Error>> {
+    pub fn execute_bench(&self, args: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
         let day: Option<Day> = args
             .value_of("day")
             .map(|d| d.parse().expect("Failed to parse day"));
@@ -252,7 +254,8 @@ impl AOCApp {
         let cargo_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/template/Cargo-bench.toml.tpl"
-        )).replace("{CRATE_NAME}", &pm.name)
+        ))
+        .replace("{CRATE_NAME}", &pm.name)
         .replace(
             "{PROFILE}",
             if args.is_present("profile") {
@@ -326,7 +329,8 @@ impl AOCApp {
                                         } else {
                                             format!("day{}_part{}", dp.day.0, dp.part.0)
                                         },
-                                    ).replace("{DAY}", &dp.day.0.to_string())
+                                    )
+                                    .replace("{DAY}", &dp.day.0.to_string())
                                     .replace(
                                         "{NAME}",
                                         if let Some(n) = &dp.name {
@@ -334,13 +338,16 @@ impl AOCApp {
                                         } else {
                                             "(default)"
                                         },
-                                    ).replace("{PART_NAME}", &part_name)
-                            }).collect::<String>(),
+                                    )
+                                    .replace("{PART_NAME}", &part_name)
+                            })
+                            .collect::<String>(),
                     )
-            }).collect();
+            })
+            .collect();
 
         if body.is_empty() {
-            Err("No matching day & part found")?;
+            return Err("No matching day & part found".into());
         }
 
         let gens = if args.is_present("generator") {
@@ -374,7 +381,8 @@ impl AOCApp {
                                             } else {
                                                 format!("day{}_part{}", dp.day.0, dp.part.0)
                                             },
-                                        ).replace("{DAY}", &dp.day.0.to_string())
+                                        )
+                                        .replace("{DAY}", &dp.day.0.to_string())
                                         .replace(
                                             "{NAME}",
                                             if let Some(n) = &dp.name {
@@ -382,10 +390,13 @@ impl AOCApp {
                                             } else {
                                                 "(default)"
                                             },
-                                        ).replace("{GEN_NAME}", &gen_name)
-                                }).collect::<String>(),
+                                        )
+                                        .replace("{GEN_NAME}", &gen_name)
+                                })
+                                .collect::<String>(),
                         )
-                }).collect()
+                })
+                .collect()
         } else {
             String::new()
         };
@@ -403,7 +414,11 @@ impl AOCApp {
                 } else {
                     "aoc_benchmark"
                 },
-            ).replace("{INPUTS}", &template_input(day, year, args.value_of("input")));
+            )
+            .replace(
+                "{INPUTS}",
+                &template_input(day, year, args.value_of("input")),
+            );
 
         fs::create_dir_all("target/aoc/aoc-autobench/benches")
             .expect("failed to create autobench directory");
@@ -412,7 +427,8 @@ impl AOCApp {
         fs::write(
             "target/aoc/aoc-autobench/benches/aoc_benchmark.rs",
             &main_content,
-        ).expect("failed to write src/aoc_benchmark.rs");
+        )
+        .expect("failed to write src/aoc_benchmark.rs");
 
         let status = process::Command::new("cargo")
             .args(&["bench"])
@@ -430,7 +446,7 @@ impl AOCApp {
             let index = "target/aoc/aoc-autobench/target/criterion/report/index.html";
 
             if !Path::new(index).exists() {
-                Err("Report is missing, perhaps gnuplot is missing ?")?;
+                return Err("Report is missing, perhaps gnuplot is missing ?".into());
             }
             webbrowser::open(index)?;
         }
@@ -453,6 +469,7 @@ fn template_input(day: Day, year: u32, input: Option<&str>) -> String {
     include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/template/input.rs.tpl"
-    )).replace("{PATH}", &path)
+    ))
+    .replace("{PATH}", &path)
     .replace("{DAY}", &day)
 }

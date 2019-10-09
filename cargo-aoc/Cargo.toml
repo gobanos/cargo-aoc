@@ -9,10 +9,10 @@ readme = "README.md"
 include = ["Cargo.toml", "src/**/*", "template/**/*.tpl", "README.md"]
 
 [dependencies]
-aoc-runner-internal = "0.1.0"
-toml = "0.4.9"
-clap = "2.32.0"
-chrono = "0.4.6"
-chrono-tz = "0.5"
-reqwest = "0.9.5"
-webbrowser = "0.3.1"
+aoc-runner-internal = { path = "../aoc-runner-internal" }
+toml = "0.5.3"
+clap = "2.33.0"
+chrono = "0.4.9"
+chrono-tz = "0.5.1"
+reqwest = "0.9.21"
+webbrowser = "0.5.2"

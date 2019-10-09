@@ -9,7 +9,7 @@ pub struct ProjectManager {
 }
 
 impl ProjectManager {
-    pub fn new() -> Result<ProjectManager, Box<error::Error>> {
+    pub fn new() -> Result<ProjectManager, Box<dyn error::Error>> {
         let cargo: toml::Value = fs::read_to_string("Cargo.toml")?.parse()?;
 
         let crate_name = cargo
@@ -29,16 +29,17 @@ impl ProjectManager {
         })
     }
 
-    pub fn build_project(&self) -> Result<DayParts, Box<error::Error>> {
+    pub fn build_project(&self) -> Result<DayParts, Box<dyn error::Error>> {
         let args = vec!["check", "--color=always"];
 
         let status = process::Command::new("cargo").args(&args).spawn()?.wait()?;
 
         if !status.success() {
-            Err(format!(
+            return Err(format!(
                 "cargo build failed with code {}",
                 status.code().unwrap_or(-1)
-            ))?;
+            )
+            .into());
         }
 
         DayParts::load()

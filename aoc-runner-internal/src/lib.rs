@@ -91,7 +91,7 @@ pub struct DayParts {
 }
 
 impl DayParts {
-    pub fn save(&self) -> Result<(), Box<error::Error>> {
+    pub fn save(&self) -> Result<(), Box<dyn error::Error>> {
         fs::create_dir_all("target/aoc")?;
         let f = fs::File::create("target/aoc/completed.json")?;
 
@@ -100,7 +100,7 @@ impl DayParts {
         Ok(())
     }
 
-    pub fn load() -> Result<Self, Box<error::Error>> {
+    pub fn load() -> Result<Self, Box<dyn error::Error>> {
         let f = fs::File::open("target/aoc/completed.json")?;
 
         Ok(serde_json::from_reader(f)?)
