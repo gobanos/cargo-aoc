@@ -4,5 +4,6 @@ members = [
     "aoc-runner-derive",
     "aoc-runner-internal",
     "cargo-aoc",
-    "examples"
+    "examples/boilerplate",
+    "examples/aoc-2018",
 ]

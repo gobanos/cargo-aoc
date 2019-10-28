@@ -1,0 +1,9 @@
+[package]
+name = "boilerplate"
+version = "0.2.0"
+authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+aoc-runner = { path = "../../aoc-runner" }
+aoc-runner-derive = { path = "../../aoc-runner-derive" }

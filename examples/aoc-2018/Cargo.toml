@@ -1,0 +1,12 @@
+[package]
+name = "advent-of-code-2018"
+version = "0.2.0"
+authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+aoc-runner = { path = "../../aoc-runner" }
+aoc-runner-derive = { path = "../../aoc-runner-derive" }
+fnv = "1.0.6"
+chrono = "0.4.6"
+petgraph = "0.4.13"
