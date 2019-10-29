@@ -1,6 +1,6 @@
 use std::borrow::Borrow;
 use std::error::Error;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
 #[inline]
@@ -56,3 +56,31 @@ pub trait Runner {
         Ok(self.run())
     }
 }
+
+pub trait Generator<'a> {
+    type Output;
+
+    fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>>;
+
+    fn is_default(&self) -> bool { false }
+}
+
+pub trait RunnerV2<'a> {
+    type Input;
+    type Output;
+
+    fn run(&self, input: Self::Input) -> Result<Self::Output, Box<dyn Error>>;
+
+    fn is_default(&self) -> bool { false }
+}
+
+#[derive(Debug)]
+pub struct NotImplemented;
+
+impl Display for NotImplemented {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        write!(f, "NotImplemented")
+    }
+}
+
+impl Error for NotImplemented {}
