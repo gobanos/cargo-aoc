@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
+pub use void::Void;
 
 #[inline]
 pub fn identity<T>(t: T) -> T {
@@ -62,7 +63,9 @@ pub trait Generator<'a> {
 
     fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>>;
 
-    fn is_default(&self) -> bool { false }
+    fn is_default(&self) -> bool {
+        false
+    }
 }
 
 pub trait RunnerV2<'a> {
@@ -71,7 +74,9 @@ pub trait RunnerV2<'a> {
 
     fn run(&self, input: Self::Input) -> Result<Self::Output, Box<dyn Error>>;
 
-    fn is_default(&self) -> bool { false }
+    fn is_implemented(&self) -> bool {
+        true
+    }
 }
 
 #[derive(Debug)]

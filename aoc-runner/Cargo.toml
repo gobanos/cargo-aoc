@@ -6,5 +6,7 @@ description = "A runner for the Advent of Code"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/gobanos/aoc-runner"
 readme = "README.md"
+edition = "2018"
 
 [dependencies]
+void = "1.0.2"

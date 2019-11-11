@@ -1,14 +1,7 @@
 #[doc(hidden)]
 pub mod __aoc {
+    use aoc_runner::{Generator, NotImplemented, RunnerV2, Void};
     use std::error::Error;
-
-    pub trait Generator<'a> {
-        type Output;
-
-        fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>>;
-
-        fn is_default(&self) -> bool { false }
-    }
 
     pub struct Day1Part1Generator;
 
@@ -19,7 +12,9 @@ pub mod __aoc {
             Ok(input)
         }
 
-        fn is_default(&self) -> bool { true }
+        fn is_default(&self) -> bool {
+            true
+        }
     }
 
     pub struct Day1Part2Generator;
@@ -31,82 +26,150 @@ pub mod __aoc {
             Ok(input)
         }
 
-        fn is_default(&self) -> bool { true }
+        fn is_default(&self) -> bool {
+            true
+        }
+    }
+
+    pub struct Day1Part1Runner;
+
+    impl<'a> RunnerV2<'a> for &Day1Part1Runner {
+        type Input = &'a str;
+        type Output = Void;
+
+        fn run(&self, _input: Self::Input) -> Result<Self::Output, Box<dyn Error>> {
+            Err(Box::new(NotImplemented))
+        }
+
+        fn is_implemented(&self) -> bool {
+            false
+        }
+    }
+
+    pub struct Day1Part2Runner;
+
+    impl<'a> RunnerV2<'a> for &Day1Part2Runner {
+        type Input = &'a str;
+        type Output = ();
+
+        fn run(&self, _input: Self::Input) -> Result<Self::Output, Box<dyn Error>> {
+            Err(Box::new(NotImplemented))
+        }
+
+        fn is_implemented(&self) -> bool {
+            false
+        }
     }
 }
 
-mod day1 {
+pub mod day1 {
     use std::collections::HashSet;
     use std::num::ParseIntError;
-    use std::error::Error;
-    use std::ops::Deref;
-
-    impl<'a> crate::__aoc::Generator<'a> for crate::__aoc::Day1Part1Generator {
-        type Output = Vec<i32>;
-
-        fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
-            parse_input_day1(input).map_err(|err| err.into())
-        }
-    }
-
-    impl<'a> crate::__aoc::Generator<'a> for crate::__aoc::Day1Part2Generator {
-        type Output = Vec<i32>;
-
-        fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
-            parse_input_day1(input).map_err(|err| err.into())
-        }
-    }
 
     fn parse_input_day1(input: &str) -> Result<Vec<i32>, ParseIntError> {
         input.lines().map(|l| l.parse()).collect()
+    }
+
+    #[allow(non_snake_case)]
+    pub mod parse_input_day1__aoc_generator {
+        use super::parse_input_day1;
+        use std::error::Error;
+
+        impl<'a> aoc_runner::Generator<'a> for crate::__aoc::Day1Part1Generator {
+            type Output = Vec<i32>;
+
+            fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
+                parse_input_day1(input).map_err(|err| err.into())
+            }
+        }
+
+        impl<'a> aoc_runner::Generator<'a> for crate::__aoc::Day1Part2Generator {
+            type Output = Vec<i32>;
+
+            fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
+                parse_input_day1(input).map_err(|err| err.into())
+            }
+        }
     }
 
     fn parse_input_day1_unwrap(input: &str) -> Vec<i32> {
         input.lines().map(|l| l.parse().unwrap()).collect()
     }
 
-    pub struct Day1Part1UnwrapGenerator { base: crate::__aoc::Day1Part1Generator }
+    #[allow(non_snake_case)]
+    pub mod parse_input_day1_unwrap__aoc_generator {
+        use super::parse_input_day1_unwrap;
+        use std::error::Error;
+        use std::ops::Deref;
 
-    impl Default for Day1Part1UnwrapGenerator {
-        fn default() -> Self {
-            Day1Part1UnwrapGenerator { base: crate::__aoc::Day1Part1Generator }
+        pub struct Day1Part1UnwrapGenerator {
+            base: crate::__aoc::Day1Part1Generator,
         }
-    }
 
-    impl Deref for Day1Part1UnwrapGenerator {
-        type Target = crate::__aoc::Day1Part1Generator;
-
-        fn deref(&self) -> &Self::Target {
-            &self.base
+        impl Default for Day1Part1UnwrapGenerator {
+            fn default() -> Self {
+                Day1Part1UnwrapGenerator {
+                    base: crate::__aoc::Day1Part1Generator,
+                }
+            }
         }
-    }
 
-    impl<'a> crate::__aoc::Generator<'a> for Day1Part1UnwrapGenerator {
-        type Output = Vec<i32>;
+        impl Deref for Day1Part1UnwrapGenerator {
+            type Target = crate::__aoc::Day1Part1Generator;
 
-        fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
-            Ok(parse_input_day1_unwrap(input))
+            fn deref(&self) -> &Self::Target {
+                &self.base
+            }
         }
-    }
 
-    pub struct Day1Part2UnwrapGenerator { base: crate::__aoc::Day1Part2Generator }
+        impl<'a> aoc_runner::Generator<'a> for Day1Part1UnwrapGenerator {
+            type Output = Vec<i32>;
 
-    impl Default for Day1Part2UnwrapGenerator {
-        fn default() -> Self {
-            Day1Part2UnwrapGenerator { base: crate::__aoc::Day1Part2Generator }
+            fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
+                Ok(parse_input_day1_unwrap(input))
+            }
         }
-    }
 
-    impl Deref for Day1Part2UnwrapGenerator {
-        type Target = crate::__aoc::Day1Part2Generator;
+        pub struct Day1Part2UnwrapGenerator {
+            base: crate::__aoc::Day1Part2Generator,
+        }
 
-        fn deref(&self) -> &Self::Target {
-            &self.base
+        impl Default for Day1Part2UnwrapGenerator {
+            fn default() -> Self {
+                Day1Part2UnwrapGenerator {
+                    base: crate::__aoc::Day1Part2Generator,
+                }
+            }
+        }
+
+        impl Deref for Day1Part2UnwrapGenerator {
+            type Target = crate::__aoc::Day1Part2Generator;
+
+            fn deref(&self) -> &Self::Target {
+                &self.base
+            }
         }
     }
 
     pub fn part1(freqs: &[i32]) -> i32 {
         freqs.iter().sum()
+    }
+
+    #[allow(non_snake_case)]
+    pub mod part1__aoc_runner {
+        use super::part1;
+        use crate::__aoc::Day1Part1Runner;
+        use aoc_runner::RunnerV2;
+        use std::error::Error;
+
+        impl<'a> RunnerV2<'a> for Day1Part1Runner {
+            type Input = &'a [i32];
+            type Output = i32;
+
+            fn run(&self, input: Self::Input) -> Result<Self::Output, Box<dyn Error>> {
+                Ok(part1(input))
+            }
+        }
     }
 
     pub fn part2(freqs: &[i32]) -> i32 {
@@ -125,6 +188,23 @@ mod day1 {
             .count();
 
         sum
+    }
+
+    #[allow(non_snake_case)]
+    pub mod part2__aoc_runner {
+        use super::part2;
+        use crate::__aoc::Day1Part2Runner;
+        use aoc_runner::RunnerV2;
+        use std::error::Error;
+
+        impl<'a> RunnerV2<'a> for Day1Part2Runner {
+            type Input = &'a [i32];
+            type Output = i32;
+
+            fn run(&self, input: Self::Input) -> Result<Self::Output, Box<dyn Error>> {
+                Ok(part2(input))
+            }
+        }
     }
 
     #[cfg(test)]

@@ -1,7 +1,7 @@
+use crate::types::SpecialType;
 use aoc_runner_internal::{Day, DayPart};
 use proc_macro as pm;
 use syn;
-use types::SpecialType;
 
 pub(crate) fn extract_meta(
     args: pm::TokenStream,
