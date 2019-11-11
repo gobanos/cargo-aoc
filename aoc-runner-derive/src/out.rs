@@ -1,7 +1,7 @@
 use crate::map::InnerMap;
 use crate::utils::{to_camelcase, to_input, to_snakecase};
 use crate::AOC_RUNNER;
-use aoc_runner_internal::{DayParts, DayPartsBuilder};
+use aoc_runner_internal::{Day, DayPart, DayParts, DayPartsBuilder, Part};
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
@@ -62,42 +62,59 @@ pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
 }
 
 fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
-    let traits_impl: pm2::TokenStream = map
-        .keys()
-        .map(|dp| {
-            let snake = to_snakecase(&dp);
-            let camel = to_camelcase(&dp);
+    let day_parts_headers: pm2::TokenStream = base_day_part()
+        .map(|day_part| {
+            let generator_struct = to_camelcase(&day_part, "Generator");
+            let runner_struct = to_camelcase(&day_part, "Runner");
 
             quote! {
-                #[doc(hidden)]
-                pub trait #camel {
-                    fn #snake(input: ArcStr) -> Result<Box<dyn Runner>, Box<dyn Error>>;
+                pub struct #generator_struct;
+
+                impl<'a> Generator<'a> for &#generator_struct {
+                    type Output = &'a str;
+
+                    fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
+                        Ok(input)
+                    }
+
+                    fn is_default(&self) -> bool {
+                        true
+                    }
+                }
+
+                pub struct #runner_struct<I>(pub PhantomData<I>);
+
+                impl<'a, I> RunnerV2<'a, I> for &#runner_struct<I> {
+                    type Output = Void;
+
+                    fn run(&self, _input: I) -> Result<Self::Output, Box<dyn Error>> {
+                        Err(Box::new(NotImplemented))
+                    }
+
+                    fn is_implemented(&self) -> bool {
+                        false
+                    }
                 }
             }
         })
         .collect();
 
     quote! {
-        pub use self::aoc_factory::*;
-
-        #[allow(unused)]
-        mod aoc_factory {
-            use aoc_runner::{Runner, ArcStr};
+        #[doc(hidden)]
+        pub mod __aoc {
+            use aoc_runner::{Generator, NotImplemented, RunnerV2, Void};
             use std::error::Error;
+            use std::marker::PhantomData;
 
-            #[doc(hidden)]
-            pub static YEAR : u32 = #year;
+            pub const YEAR : u32 = #year;
 
-            #[doc(hidden)]
-            pub struct Factory();
-
-            #traits_impl
+            #day_parts_headers
         }
     }
 }
 
 fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
-    let mut days: Vec<_> = infos.iter().map(|dp| dp.day).collect();
+    let mut days: Vec<_> = base_day_part().map(|dp| dp.day).collect();
     days.sort();
     days.dedup();
 
@@ -107,19 +124,18 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
             let name = to_input(d);
             let input = format!("../input/{}/day{}.txt", infos.year, d.0);
 
-            quote! { let #name = ArcStr::from(include_str!(#input)); }
+            quote! { let #name = include_str!(#input); }
         })
         .collect();
 
-    let body : pm2::TokenStream = infos.iter().map(|dp| {
-        let identifier = to_snakecase(dp);
+    let body : pm2::TokenStream = base_day_part().map(|dp| {
         let (pattern, err) = if let Some(n) = &dp.name {
             (
                 format!(
                     "Day {} - Part {} - {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
                     dp.day.0, dp.part.0, n
                 ),
-                format! (
+                format!(
                     "Day {} - Part {} - {}: FAILED while {{}}:\n{{:#?}}\n",
                     dp.day.0, dp.part.0, n
                 )
@@ -138,35 +154,39 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
         };
 
         let input = to_input(dp.day);
+        let generator = to_camelcase(&dp, "Generator");
+        let runner = to_camelcase(&dp, "Runner");
 
         quote! {
             {
                 let start_time = Instant::now();
 
-                match Factory::#identifier(#input.clone()) {
-                    Ok(runner) => {
-                        let inter_time = Instant::now();
-
-                        match runner.try_run() {
-                            Ok(result) => {
-                                let final_time = Instant::now();
-                                println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
-                            },
-                            Err(e) => eprintln!(#err, "running", e)
+                let generator = &#generator;
+                match generator.generate(#input) {
+                    Ok(parsed_input) => {
+                        let runner = &#runner(PhantomData);
+                        if runner.is_implemented() {
+                            let inter_time = Instant::now();
+                            match runner.run(&parsed_input) {
+                                Ok(result) => {
+                                    let final_time = Instant::now();
+                                    println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
+                                },
+                                Err(e) => eprintln!(#err, "running", e),
+                            }
                         }
                     },
-                    Err(e) => eprintln!(#err, "generating", e)
+                    Err(e) => eprintln!(#err, "generating", e),
                 }
             }
         }
     }).collect();
-
     if let Some(lib) = lib {
         quote! {
-            use #lib::*;
-
             fn main() {
-                use aoc_runner::ArcStr;
+                use #lib::__aoc::*;
+                use aoc_runner::{Generator, RunnerV2};
+                use std::marker::PhantomData;
                 use std::time::{Duration, Instant};
 
                 #inputs
@@ -179,9 +199,10 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
     } else {
         quote! {
             fn main() {
-                use aoc_runner::ArcStr;
+                use crate::__aoc::*;
+                use aoc_runner::{Generator, RunnerV2};
+                use std::marker::PhantomData;
                 use std::time::{Duration, Instant};
-
 
                 #inputs
 
@@ -286,4 +307,14 @@ fn parse_main_infos(infos: pm::TokenStream) -> Result<MainInfos, ()> {
     } else {
         Err(())
     }
+}
+
+fn base_day_part() -> impl Iterator<Item = DayPart> {
+    (1..=8).into_iter().flat_map(|day| {
+        (1..=2).into_iter().map(move |part| DayPart {
+            day: Day(day),
+            part: Part(part),
+            name: None,
+        })
+    })
 }

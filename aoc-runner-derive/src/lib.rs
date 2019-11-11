@@ -85,14 +85,6 @@ pub fn aoc(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
 /// A generator must be declared before it's solutions.
 ///
 pub fn aoc_generator(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
-    if is_rls() {
-        let input: pm2::TokenStream = input.into();
-        return pm::TokenStream::from(quote! {
-            #[allow(unused)]
-            #input
-        });
-    }
-
     generator::generator_impl(args, input)
 }
 

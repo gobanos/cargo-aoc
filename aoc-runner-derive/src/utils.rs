@@ -66,13 +66,19 @@ pub(crate) fn to_snakecase(dp: &DayPart) -> syn::Ident {
     syn::Ident::new(&name, pm::Span::call_site().into())
 }
 
-pub(crate) fn to_camelcase(dp: &DayPart) -> syn::Ident {
+pub(crate) fn to_camelcase(dp: &DayPart, suffix: &str) -> syn::Ident {
     let DayPart { day, part, name } = dp;
 
     let name = if let Some(name) = name {
-        format!("Day{}Part{}{}", day.0, part.0, name.to_uppercase())
+        format!(
+            "Day{}Part{}{}{}",
+            day.0,
+            part.0,
+            name.to_uppercase(),
+            suffix
+        )
     } else {
-        format!("Day{}Part{}", day.0, part.0)
+        format!("Day{}Part{}{}", day.0, part.0, suffix)
     };
 
     syn::Ident::new(&name, pm::Span::call_site().into())

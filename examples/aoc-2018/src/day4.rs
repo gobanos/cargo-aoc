@@ -10,7 +10,7 @@ use std::str::FromStr;
 use std::time::Duration;
 
 #[derive(Debug, Eq, PartialEq)]
-struct Record {
+pub struct Record {
     date: NaiveDateTime,
     action: Action,
 }

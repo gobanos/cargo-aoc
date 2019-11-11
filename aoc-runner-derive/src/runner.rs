@@ -4,6 +4,7 @@ use crate::AOC_RUNNER;
 use aoc_runner_internal::DayPart;
 use proc_macro as pm;
 use proc_macro2 as pm2;
+use proc_macro2::Span;
 use quote::quote;
 use syn::*;
 
@@ -20,9 +21,34 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
         .expect("runners must have a defined part");
     let name = name.map(|i| i.to_string());
 
+    if name.is_some() {
+        return pm::TokenStream::new();
+    }
+
     let dp = DayPart { day, part, name };
 
     let input = parse_macro_input!(input as ItemFn);
+
+    let input_t = match input
+        .sig
+        .inputs
+        .first()
+        .expect("runners must take an input")
+    {
+        FnArg::Typed(pat) => pat.ty.clone(),
+        _ => panic!("runners functions can't have a self parameter"),
+    };
+
+    let input_t = match &*input_t {
+        Type::Reference(ty) => {
+            let ty = ty.clone();
+            Box::new(Type::Reference(TypeReference {
+                lifetime: Some(Lifetime::new("'a", Span::call_site())),
+                ..ty
+            }))
+        }
+        _ => input_t,
+    };
 
     let original_fn = input.clone();
 
@@ -39,72 +65,34 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
         (None, out_t)
     };
 
-    let def = AOC_RUNNER.with(|map| {
-        let mut map = map
-            .borrow_mut()
-            .expect("failed to borrow shared map from runner");
+    let mod_name = Ident::new(&format!("__{}_runner", fn_name), Span::call_site());
+    let struct_name = to_camelcase(&dp, "Runner");
 
-        let dp = dp.clone();
-        let def = dp.without_name();
-
-        if !map.contains_key(&dp) && map.contains_key(&def) {
-            let mut val = map[&def].clone();
-            val.solver = None;
-            map.insert(dp.clone(), val);
+    let runner_body = match special_type {
+        Some(SpecialType::Result) => quote! { #fn_name(input).map_err(|err| err.into()) },
+        Some(SpecialType::Option) => {
+            quote! { #fn_name(input).ok_or_else(|| aoc_runner::GeneratorFailed.into()) }
         }
-
-        let runner = map.entry(dp).or_default();
-
-        runner.with_solver(Solver::new(&fn_name, &out_t, special_type));
-
-        let derive = build_derive(runner.solver.as_ref().unwrap(), runner.generator.as_ref());
-
-        if let Some(generator) = &runner.generator {
-            let gen_out_t = &generator.get_out_t();
-
-            quote! {
-                pub struct RunnerStruct {
-                    input: #gen_out_t,
-                    output: PhantomData<#out_t>,
-                }
-
-                #derive
-            }
-        } else {
-            quote! {
-                pub struct RunnerStruct {
-                    input: ArcStr,
-                    output: PhantomData<#out_t>,
-                }
-
-                #derive
-            }
-        }
-    });
-
-    let mod_name = to_snakecase(&dp);
-    let trait_name = to_camelcase(&dp);
+        None => quote! { Ok(#fn_name(input)) },
+    };
 
     pm::TokenStream::from(quote! {
         #original_fn
 
-        #[allow(unused_imports)]
+        #[doc(hidden)]
         mod #mod_name {
             use super::*;
-            use aoc_runner::{ArcStr, Runner};
-            use std::marker::PhantomData;
+            use crate::__aoc::#struct_name;
+            use aoc_runner::RunnerV2;
             use std::error::Error;
-            use std::fmt::Display;
-            use std::borrow::Borrow;
-            use crate::{Factory, #trait_name};
 
-            impl #trait_name for Factory {
-                fn #mod_name(input: ArcStr) -> Result<Box<dyn Runner>, Box<dyn Error>> {
-                    Ok(Box::new( RunnerStruct::try_gen(input)? ))
+            impl<'a> RunnerV2<'a, #input_t> for #struct_name<#input_t> {
+                type Output = #out_t;
+
+                fn run(&self, input: #input_t) -> Result<Self::Output, Box<dyn Error>> {
+                    #runner_body
                 }
             }
-
-            #def
         }
     })
 }

@@ -83,8 +83,19 @@ pub struct NotImplemented;
 
 impl Display for NotImplemented {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
-        write!(f, "NotImplemented")
+        write!(f, "Not Implemented")
     }
 }
 
 impl Error for NotImplemented {}
+
+#[derive(Debug)]
+pub struct GeneratorFailed;
+
+impl Display for GeneratorFailed {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        write!(f, "Generator Failed")
+    }
+}
+
+impl Error for GeneratorFailed {}

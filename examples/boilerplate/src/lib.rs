@@ -32,7 +32,6 @@ pub mod __aoc {
         }
     }
 
-    #[derive(Default)]
     pub struct Day1Part1Runner<I>(pub PhantomData<I>);
 
     impl<'a, I> RunnerV2<'a, I> for &Day1Part1Runner<I> {
@@ -47,7 +46,6 @@ pub mod __aoc {
         }
     }
 
-    #[derive(Default)]
     pub struct Day1Part2Runner<I>(pub PhantomData<I>);
 
     impl<'a, I> RunnerV2<'a, I> for &Day1Part2Runner<I> {

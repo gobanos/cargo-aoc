@@ -5,7 +5,7 @@ use std::error::Error;
 use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-struct Point {
+pub struct Point {
     x: u32,
     y: u32,
 }
