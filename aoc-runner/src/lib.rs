@@ -68,11 +68,10 @@ pub trait Generator<'a> {
     }
 }
 
-pub trait RunnerV2<'a> {
-    type Input;
+pub trait RunnerV2<'a, I> {
     type Output;
 
-    fn run(&self, input: Self::Input) -> Result<Self::Output, Box<dyn Error>>;
+    fn run(&self, input: I) -> Result<Self::Output, Box<dyn Error>>;
 
     fn is_implemented(&self) -> bool {
         true

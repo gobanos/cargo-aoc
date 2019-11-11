@@ -2,6 +2,7 @@
 pub mod __aoc {
     use aoc_runner::{Generator, NotImplemented, RunnerV2, Void};
     use std::error::Error;
+    use std::marker::PhantomData;
 
     pub struct Day1Part1Generator;
 
@@ -31,13 +32,13 @@ pub mod __aoc {
         }
     }
 
-    pub struct Day1Part1Runner;
+    #[derive(Default)]
+    pub struct Day1Part1Runner<I>(pub PhantomData<I>);
 
-    impl<'a> RunnerV2<'a> for &Day1Part1Runner {
-        type Input = &'a str;
+    impl<'a, I> RunnerV2<'a, I> for &Day1Part1Runner<I> {
         type Output = Void;
 
-        fn run(&self, _input: Self::Input) -> Result<Self::Output, Box<dyn Error>> {
+        fn run(&self, _input: I) -> Result<Self::Output, Box<dyn Error>> {
             Err(Box::new(NotImplemented))
         }
 
@@ -46,13 +47,13 @@ pub mod __aoc {
         }
     }
 
-    pub struct Day1Part2Runner;
+    #[derive(Default)]
+    pub struct Day1Part2Runner<I>(pub PhantomData<I>);
 
-    impl<'a> RunnerV2<'a> for &Day1Part2Runner {
-        type Input = &'a str;
+    impl<'a, I> RunnerV2<'a, I> for &Day1Part2Runner<I> {
         type Output = ();
 
-        fn run(&self, _input: Self::Input) -> Result<Self::Output, Box<dyn Error>> {
+        fn run(&self, _input: I) -> Result<Self::Output, Box<dyn Error>> {
             Err(Box::new(NotImplemented))
         }
 
@@ -162,11 +163,10 @@ pub mod day1 {
         use aoc_runner::RunnerV2;
         use std::error::Error;
 
-        impl<'a> RunnerV2<'a> for Day1Part1Runner {
-            type Input = &'a [i32];
+        impl<'a> RunnerV2<'a, &'a [i32]> for Day1Part1Runner<&'a [i32]> {
             type Output = i32;
 
-            fn run(&self, input: Self::Input) -> Result<Self::Output, Box<dyn Error>> {
+            fn run(&self, input: &'a [i32]) -> Result<Self::Output, Box<dyn Error>> {
                 Ok(part1(input))
             }
         }
@@ -197,11 +197,10 @@ pub mod day1 {
         use aoc_runner::RunnerV2;
         use std::error::Error;
 
-        impl<'a> RunnerV2<'a> for Day1Part2Runner {
-            type Input = &'a [i32];
+        impl<'a> RunnerV2<'a, &'a [i32]> for Day1Part2Runner<&'a [i32]> {
             type Output = i32;
 
-            fn run(&self, input: Self::Input) -> Result<Self::Output, Box<dyn Error>> {
+            fn run(&self, input: &'a [i32]) -> Result<Self::Output, Box<dyn Error>> {
                 Ok(part2(input))
             }
         }
