@@ -70,8 +70,8 @@ pub mod day1 {
         input.lines().map(|l| l.parse()).collect()
     }
 
-    #[allow(non_snake_case)]
-    pub mod parse_input_day1__aoc_generator {
+    #[doc(hidden)]
+    pub mod __parse_input_day1_aoc_generator {
         use super::parse_input_day1;
         use std::error::Error;
 
@@ -96,8 +96,8 @@ pub mod day1 {
         input.lines().map(|l| l.parse().unwrap()).collect()
     }
 
-    #[allow(non_snake_case)]
-    pub mod parse_input_day1_unwrap__aoc_generator {
+    #[doc(hidden)]
+    pub mod __parse_input_day1_unwrap_aoc_generator {
         use super::parse_input_day1_unwrap;
         use std::error::Error;
         use std::ops::Deref;
@@ -155,8 +155,8 @@ pub mod day1 {
         freqs.iter().sum()
     }
 
-    #[allow(non_snake_case)]
-    pub mod part1__aoc_runner {
+    #[doc(hidden)]
+    pub mod __part1_aoc_runner {
         use super::part1;
         use crate::__aoc::Day1Part1Runner;
         use aoc_runner::RunnerV2;
@@ -190,8 +190,8 @@ pub mod day1 {
         sum
     }
 
-    #[allow(non_snake_case)]
-    pub mod part2__aoc_runner {
+    #[doc(hidden)]
+    pub mod __part2_aoc_runner {
         use super::part2;
         use crate::__aoc::Day1Part2Runner;
         use aoc_runner::RunnerV2;

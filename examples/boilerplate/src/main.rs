@@ -23,14 +23,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     {
         let generator =
-            &day1::parse_input_day1_unwrap__aoc_generator::Day1Part1UnwrapGenerator::default();
+            &day1::__parse_input_day1_unwrap_aoc_generator::Day1Part1UnwrapGenerator::default();
         let parsed_input = generator.generate(input)?;
         println!("day1 - part1: {}", day1::part1(parsed_input.borrow()));
     }
 
     {
         let generator =
-            &day1::parse_input_day1_unwrap__aoc_generator::Day1Part2UnwrapGenerator::default();
+            &day1::__parse_input_day1_unwrap_aoc_generator::Day1Part2UnwrapGenerator::default();
         let parsed_input = generator.generate(input)?;
         println!("day1 - part2: {}", day1::part2(parsed_input.borrow()));
     }
