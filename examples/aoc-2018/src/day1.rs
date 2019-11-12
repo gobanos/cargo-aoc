@@ -8,12 +8,12 @@ fn parse_input_day1(input: &str) -> Result<Vec<i32>, ParseIntError> {
     input.lines().map(|l| l.parse()).collect()
 }
 
-#[aoc(day1, part1)]
+#[aoc(day = "1", part = "1")]
 fn part1(freqs: &[i32]) -> i32 {
     freqs.iter().sum()
 }
 
-#[aoc(day1, part2)]
+#[aoc(day = "1", part = "2")]
 fn part2(freqs: &[i32]) -> i32 {
     let mut reached = HashSet::new();
     let mut sum = 0;
@@ -32,7 +32,7 @@ fn part2(freqs: &[i32]) -> i32 {
     sum
 }
 
-#[aoc(day1, part2, Fnv)]
+#[aoc(day = "1", part = "2", name = "Fnv")]
 fn part2_fnv(freqs: &[i32]) -> i32 {
     let mut reached = FnvHashSet::default();
     let mut sum = 0;

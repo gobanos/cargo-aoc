@@ -2,7 +2,7 @@ use aoc_runner_derive::aoc;
 use fnv::FnvHashMap;
 use std::collections::HashMap;
 
-#[aoc(day2, part1)]
+#[aoc(day = "2", part = "1")]
 fn part1(input: &str) -> u32 {
     let (nb_double, nb_triple) = input
         .lines()
@@ -26,7 +26,7 @@ fn part1(input: &str) -> u32 {
     nb_double * nb_triple
 }
 
-#[aoc(day2, part1, Fnv)]
+#[aoc(day = "2", part = "1", name = "Fnv")]
 fn part1_fnv(input: &str) -> u32 {
     let (nb_double, nb_triple) = input
         .lines()
@@ -51,7 +51,7 @@ fn part1_fnv(input: &str) -> u32 {
     nb_double * nb_triple
 }
 
-#[aoc(day2, part2)]
+#[aoc(day = "2", part = "2")]
 fn part2(input: &str) -> String {
     let lines = input.lines();
 

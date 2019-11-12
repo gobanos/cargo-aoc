@@ -59,7 +59,7 @@ fn parse(input: &str) -> Result<Vec<Point>, Box<dyn Error>> {
     input.lines().map(Point::from_str).collect()
 }
 
-#[aoc(day6, part1)]
+#[aoc(day = "6", part = "1")]
 fn part1(points: &[Point]) -> Option<usize> {
     let (tl, br) = bounds(points);
 
@@ -114,7 +114,7 @@ fn part1(points: &[Point]) -> Option<usize> {
     max_area.map(|(_, size)| size)
 }
 
-#[aoc(day6, part2)]
+#[aoc(day = "6", part = "2")]
 fn part2(points: &[Point]) -> Option<usize> {
     part2_internal(points, 10_000)
 }

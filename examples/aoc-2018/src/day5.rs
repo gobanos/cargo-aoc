@@ -14,24 +14,24 @@ fn generator(input: &str) -> &[u8] {
     input.as_bytes()
 }
 
-#[aoc(day5, part1)]
+#[aoc(day = "5", part = "1")]
 fn part1(input: &[u8]) -> usize {
     reduce(input)
 }
 
-#[aoc(day5, part2)]
+#[aoc(day = "5", part = "2")]
 fn part2(input: &[u8]) -> Option<usize> {
     (b'A'..=b'Z')
         .map(|c| reduce(input.iter().filter(|&&a| a != c && a != c + DIFF)))
         .min()
 }
 
-#[aoc(day5, part1, Stack)]
+#[aoc(day = "5", part = "1", name = "Stack")]
 fn part1_stack(input: &[u8]) -> usize {
     stack(input)
 }
 
-#[aoc(day5, part2, Stack)]
+#[aoc(day = "5", part = "2", name = "Stack")]
 fn part2_stack(input: &[u8]) -> Option<usize> {
     (b'A'..=b'Z')
         .map(|c| stack(input.iter().filter(|&&a| a != c && a != c + DIFF)))
