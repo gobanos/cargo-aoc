@@ -48,7 +48,7 @@ impl FromStr for Instruction {
     }
 }
 
-#[aoc_generator(day7)]
+#[aoc_generator(day = "7")]
 fn parse(input: &str) -> Result<Graph<Step, ()>, &'static str> {
     use petgraph::graphmap::DiGraphMap;
 
@@ -66,7 +66,7 @@ fn parse(input: &str) -> Result<Graph<Step, ()>, &'static str> {
     Ok(graph.into_graph())
 }
 
-#[aoc(day7, part1)]
+#[aoc(day = "7", part = "1")]
 fn part1(graph: &Graph<Step, ()>) -> Result<String, FromUtf8Error> {
     let mut remaining = graph.clone();
 
@@ -84,7 +84,7 @@ fn part1(graph: &Graph<Step, ()>) -> Result<String, FromUtf8Error> {
     }
 }
 
-#[aoc(day7, part2)]
+#[aoc(day = "7", part = "2")]
 fn part2(graph: &Graph<Step, ()>) -> u32 {
     part2_internal(graph, 5, 60)
 }

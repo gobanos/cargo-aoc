@@ -41,7 +41,7 @@ impl Rectangle {
     }
 }
 
-#[aoc_generator(day3)]
+#[aoc_generator(day = "3")]
 fn parse(input: &str) -> Result<Vec<Claim>, Box<dyn Error>> {
     input
         .lines()
@@ -75,7 +75,7 @@ fn parse(input: &str) -> Result<Vec<Claim>, Box<dyn Error>> {
         .collect()
 }
 
-#[aoc(day3, part1)]
+#[aoc(day = "3", part = "1")]
 fn part1(claims: &[Claim]) -> usize {
     let mut overlaps = FnvHashSet::default();
 
@@ -94,7 +94,7 @@ fn part1(claims: &[Claim]) -> usize {
     overlaps.len()
 }
 
-#[aoc(day3, part2)]
+#[aoc(day = "3", part = "2")]
 fn part2(claims: &[Claim]) -> Option<u32> {
     claims.iter().find_map(|c| {
         if claims

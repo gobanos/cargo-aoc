@@ -78,7 +78,7 @@ impl FromStr for Action {
     }
 }
 
-#[aoc_generator(day4)]
+#[aoc_generator(day = "4")]
 fn parse(input: &str) -> Result<Vec<Record>, Error> {
     let mut records = input
         .lines()
@@ -127,7 +127,7 @@ fn build_map(records: &[Record]) -> Result<HashMap<GuardId, GuardRecord>, &'stat
     Ok(map)
 }
 
-#[aoc(day4, part1)]
+#[aoc(day = "4", part = "1")]
 fn part1(records: &[Record]) -> Result<u32, &'static str> {
     let map = build_map(records)?;
 
@@ -152,7 +152,7 @@ fn part1(records: &[Record]) -> Result<u32, &'static str> {
     Ok(guard * min)
 }
 
-#[aoc(day4, part2)]
+#[aoc(day = "4", part = "2")]
 fn part2(records: &[Record]) -> Result<u32, &'static str> {
     let map = build_map(records)?;
 

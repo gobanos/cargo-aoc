@@ -1,31 +1,28 @@
 use crate::types::{Generator, SpecialType};
 use crate::utils;
 use crate::utils::{to_camelcase, to_snakecase};
-use crate::AOC_RUNNER;
+use crate::{AocGeneratorArgs, AOC_RUNNER};
 use aoc_runner_internal::{DayPart, Part};
+use darling::FromMeta;
 use proc_macro as pm;
-use proc_macro2 as pm2;
 use proc_macro2::Span;
 use quote::quote;
 use syn::*;
 
 pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
-    let (day, part, name) = utils::extract_meta(args);
-    let day = day
-        .to_string()
-        .parse()
-        .expect("generators must have defined day");
-    let part = part.and_then(|p| p.to_string().parse().ok());
-    let name = name.map(|i| i.to_string());
-
+    let attr_args = parse_macro_input!(args as AttributeArgs);
     let input = parse_macro_input!(input as ItemFn);
     let original_fn = input.clone();
+    let args = match AocGeneratorArgs::from_list(&attr_args) {
+        Ok(value) => value,
+        Err(e) => return pm::TokenStream::from(e.write_errors()),
+    };
 
     let generator_name = &input.sig.ident;
     let out_t = if let ReturnType::Type(_, p) = input.sig.output {
         p
     } else {
-        panic!("cannot find output type for {}", generator_name)
+        panic!("Cannot find output type for {}", generator_name)
     };
 
     let (special_type, out_t) = if let Some((ty, inner)) = utils::extract_result(&*out_t) {
@@ -61,7 +58,7 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
     let gen_impl = |part: Part| {
         let generator_struct = to_camelcase(
             &DayPart {
-                day,
+                day: args.clone().day.into(),
                 part,
                 name: None,
             },
@@ -78,8 +75,8 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
         }
     };
 
-    let impls = if let Some(p) = part {
-        gen_impl(p)
+    let impls = if let Some(p) = args.clone().part {
+        gen_impl(p.into())
     } else {
         let i1 = gen_impl(Part(1));
         let i2 = gen_impl(Part(2));

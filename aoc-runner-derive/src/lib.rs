@@ -2,6 +2,8 @@
 
 extern crate aoc_runner_internal;
 extern crate core;
+#[macro_use]
+extern crate darling;
 extern crate proc_macro;
 extern crate proc_macro2;
 extern crate quote;
@@ -16,12 +18,66 @@ mod utils;
 
 use crate::map::Map;
 use crate::utils::is_rls;
+use aoc_runner_internal::{Day, Part};
+use darling::FromMeta;
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
+use syn::Lit;
 
 thread_local! {
     static AOC_RUNNER: Map = Map::new();
+}
+
+#[derive(Debug, Clone)]
+struct DayWrapper(u8);
+
+#[derive(Debug, Clone)]
+struct PartWrapper(u8);
+
+impl FromMeta for DayWrapper {
+    fn from_value(value: &Lit) -> Result<Self, darling::error::Error> {
+        let inner = u8::from_value(value)?;
+        Ok(DayWrapper(inner))
+    }
+}
+
+impl Into<Day> for DayWrapper {
+    fn into(self) -> Day {
+        Day(self.0)
+    }
+}
+
+impl Into<Part> for PartWrapper {
+    fn into(self) -> Part {
+        Part(self.0)
+    }
+}
+
+impl FromMeta for PartWrapper {
+    fn from_value(value: &Lit) -> Result<Self, darling::error::Error> {
+        let inner = u8::from_value(value)?;
+        Ok(PartWrapper(inner))
+    }
+}
+
+#[derive(Debug, FromMeta)]
+/// The arguments of an AOC Attribute Macro usage
+struct AocArgs {
+    day: DayWrapper,
+    part: PartWrapper,
+    #[darling(default)]
+    name: Option<String>,
+}
+
+#[derive(Debug, Clone, FromMeta)]
+/// The arguments of an AOC Attribute Macro usage
+struct AocGeneratorArgs {
+    day: DayWrapper,
+    #[darling(default)]
+    part: Option<PartWrapper>,
+    #[darling(default)]
+    name: Option<String>,
 }
 
 #[proc_macro_attribute]
@@ -47,14 +103,6 @@ thread_local! {
 ///
 /// [generator]: attr.aoc_generator.html
 pub fn aoc(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
-    if is_rls() {
-        let input: pm2::TokenStream = input.into();
-        return pm::TokenStream::from(quote! {
-            #[allow(unused)]
-            #input
-        });
-    }
-
     runner::runner_impl(args, input)
 }
 

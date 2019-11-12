@@ -47,17 +47,17 @@ impl Node {
     }
 }
 
-#[aoc_generator(day8)]
+#[aoc_generator(day = "8")]
 fn parse(input: &str) -> Option<Node> {
     Node::from_iter(&mut input.split_whitespace().map(|s| s.parse().unwrap()))
 }
 
-#[aoc(day8, part1)]
+#[aoc(day = "8", part = "1")]
 fn part1(root: &Node) -> Data {
     root.checksum()
 }
 
-#[aoc(day8, part2)]
+#[aoc(day = "8", part = "2")]
 fn part2(root: &Node) -> Data {
     root.value()
 }
