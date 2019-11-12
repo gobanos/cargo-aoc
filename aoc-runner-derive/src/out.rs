@@ -5,7 +5,10 @@ use aoc_runner_internal::{Day, DayPart, DayParts, DayPartsBuilder, Part};
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
-use std::error;
+use std::collections::HashSet;
+use std::fs::read_dir;
+use std::path::Path;
+use std::{env, error};
 
 #[derive(Debug)]
 struct LibInfos {
@@ -118,13 +121,38 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
     days.sort();
     days.dedup();
 
+    let input_dir = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string()))
+        .join("input")
+        .join(&infos.year.to_string());
+
+    let days_with_input = read_dir(&input_dir)
+        .map(|files| {
+            files
+                .filter_map(Result::ok)
+                .map(|file| file.file_name())
+                .filter_map(|file_name| {
+                    let file_name = file_name.to_str()?;
+                    if file_name.starts_with("day") && file_name.ends_with(".txt") {
+                        Some(Day(file_name[3..file_name.len() - 4].parse().ok()?))
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        })
+        .unwrap_or_else(|_| HashSet::new());
+
     let inputs: pm2::TokenStream = days
         .into_iter()
         .map(|d| {
             let name = to_input(d);
-            let input = format!("../input/{}/day{}.txt", infos.year, d.0);
 
-            quote! { let #name = include_str!(#input); }
+            let input = format!("../input/{}/day{}.txt", infos.year, d.0);
+            if days_with_input.contains(&d) {
+                quote! { let #name = Some(include_str!(#input)); }
+            } else {
+                quote! { let #name = None; }
+            }
         })
         .collect();
 
@@ -159,24 +187,26 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
 
         quote! {
             {
-                let start_time = Instant::now();
+                if let Some(input) = #input {
+                    let start_time = Instant::now();
 
-                let generator = &#generator;
-                match generator.generate(#input) {
-                    Ok(parsed_input) => {
-                        let runner = &#runner(PhantomData);
-                        if runner.is_implemented() {
-                            let inter_time = Instant::now();
-                            match runner.run(&parsed_input) {
-                                Ok(result) => {
-                                    let final_time = Instant::now();
-                                    println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
-                                },
-                                Err(e) => eprintln!(#err, "running", e),
+                    let generator = &#generator;
+                    match generator.generate(input) {
+                        Ok(parsed_input) => {
+                            let runner = &#runner(PhantomData);
+                            if runner.is_implemented() {
+                                let inter_time = Instant::now();
+                                match runner.run(&parsed_input) {
+                                    Ok(result) => {
+                                        let final_time = Instant::now();
+                                        println!(#pattern, result, (inter_time - start_time), (final_time - inter_time));
+                                    },
+                                    Err(e) => eprintln!(#err, "running", e),
+                                }
                             }
-                        }
-                    },
-                    Err(e) => eprintln!(#err, "generating", e),
+                        },
+                        Err(e) => eprintln!(#err, "generating", e),
+                    }
                 }
             }
         }
@@ -310,7 +340,7 @@ fn parse_main_infos(infos: pm::TokenStream) -> Result<MainInfos, ()> {
 }
 
 fn base_day_part() -> impl Iterator<Item = DayPart> {
-    (1..=8).into_iter().flat_map(|day| {
+    (1..=25).into_iter().flat_map(|day| {
         (1..=2).into_iter().map(move |part| DayPart {
             day: Day(day),
             part: Part(part),
