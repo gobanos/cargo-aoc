@@ -48,7 +48,7 @@ impl FromStr for Instruction {
     }
 }
 
-#[aoc_generator(day7)]
+#[aoc_generator(day = "7")]
 fn parse(input: &str) -> Result<Graph<Step, ()>, &'static str> {
     use petgraph::graphmap::DiGraphMap;
 

@@ -3,7 +3,7 @@ use fnv::FnvHashSet;
 use std::collections::HashSet;
 use std::num::ParseIntError;
 
-#[aoc_generator(day1)]
+#[aoc_generator(day = "1")]
 fn parse_input_day1(input: &str) -> Result<Vec<i32>, ParseIntError> {
     input.lines().map(|l| l.parse()).collect()
 }

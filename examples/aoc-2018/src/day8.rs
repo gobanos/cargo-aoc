@@ -47,7 +47,7 @@ impl Node {
     }
 }
 
-#[aoc_generator(day8)]
+#[aoc_generator(day = "8")]
 fn parse(input: &str) -> Option<Node> {
     Node::from_iter(&mut input.split_whitespace().map(|s| s.parse().unwrap()))
 }

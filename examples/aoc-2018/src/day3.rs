@@ -41,7 +41,7 @@ impl Rectangle {
     }
 }
 
-#[aoc_generator(day3)]
+#[aoc_generator(day = "3")]
 fn parse(input: &str) -> Result<Vec<Claim>, Box<dyn Error>> {
     input
         .lines()

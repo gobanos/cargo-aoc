@@ -78,7 +78,7 @@ impl FromStr for Action {
     }
 }
 
-#[aoc_generator(day4)]
+#[aoc_generator(day = "4")]
 fn parse(input: &str) -> Result<Vec<Record>, Error> {
     let mut records = input
         .lines()

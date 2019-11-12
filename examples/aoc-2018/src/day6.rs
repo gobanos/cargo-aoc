@@ -54,7 +54,7 @@ fn all_points(tl: Point, br: Point) -> impl Iterator<Item = Point> {
     (tl.x..=br.x).flat_map(move |x| (tl.y..=br.y).map(move |y| Point { x, y }))
 }
 
-#[aoc_generator(day6)]
+#[aoc_generator(day = "6")]
 fn parse(input: &str) -> Result<Vec<Point>, Box<dyn Error>> {
     input.lines().map(Point::from_str).collect()
 }

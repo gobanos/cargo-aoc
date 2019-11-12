@@ -9,7 +9,7 @@ fn diff(a: u8, b: u8) -> u8 {
     u8::max(a, b) - u8::min(a, b)
 }
 
-#[aoc_generator(day5)]
+#[aoc_generator(day = "5")]
 fn generator(input: &str) -> &[u8] {
     input.as_bytes()
 }
