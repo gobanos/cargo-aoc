@@ -1,33 +1,37 @@
 use crate::types::{Generator, Solver, SpecialType};
 use crate::utils::{self, extract_result, to_camelcase, to_snakecase};
-use crate::AOC_RUNNER;
+use crate::{AocArgs, AOC_RUNNER};
 use aoc_runner_internal::DayPart;
+use darling::FromMeta;
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use proc_macro2::Span;
 use quote::quote;
 use syn::*;
 
-pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
-    let (day, part, name) = utils::extract_meta(args);
-    let day = day
-        .to_string()
-        .parse()
-        .expect("runners must have a defined day");
-    let part = part
-        .expect("runners must have a defined part")
-        .to_string()
-        .parse()
-        .expect("runners must have a defined part");
-    let name = name.map(|i| i.to_string());
+impl Into<DayPart> for AocArgs {
+    fn into(self) -> DayPart {
+        DayPart {
+            day: self.day.into(),
+            part: self.part.into(),
+            name: self.name,
+        }
+    }
+}
 
-    if name.is_some() {
+pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
+    // Parses the arguments using darling
+    let attr_args = parse_macro_input!(args as AttributeArgs);
+    let input = parse_macro_input!(input as ItemFn);
+    let args = match AocArgs::from_list(&attr_args) {
+        Ok(value) => value,
+        Err(e) => return pm::TokenStream::from(e.write_errors()),
+    };
+
+    let dp: DayPart = args.into();
+    if dp.name.is_some() {
         return pm::TokenStream::new();
     }
-
-    let dp = DayPart { day, part, name };
-
-    let input = parse_macro_input!(input as ItemFn);
 
     let input_t = match input
         .sig
