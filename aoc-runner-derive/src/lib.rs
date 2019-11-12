@@ -29,10 +29,10 @@ thread_local! {
     static AOC_RUNNER: Map = Map::new();
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct DayWrapper(u8);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct PartWrapper(u8);
 
 impl FromMeta for DayWrapper {
@@ -66,6 +66,16 @@ impl FromMeta for PartWrapper {
 struct AocArgs {
     day: DayWrapper,
     part: PartWrapper,
+    #[darling(default)]
+    name: Option<String>,
+}
+
+#[derive(Debug, Clone, FromMeta)]
+/// The arguments of an AOC Attribute Macro usage
+struct AocGeneratorArgs {
+    day: DayWrapper,
+    #[darling(default)]
+    part: Option<PartWrapper>,
     #[darling(default)]
     name: Option<String>,
 }
