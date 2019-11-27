@@ -8,21 +8,15 @@ extern crate quote;
 extern crate syn;
 
 mod generator;
-mod map;
 mod out;
 mod runner;
 mod types;
 mod utils;
 
-use crate::map::Map;
 use crate::utils::is_rls;
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
-
-thread_local! {
-    static AOC_RUNNER: Map = Map::new();
-}
 
 #[proc_macro_attribute]
 /// # Solution meta

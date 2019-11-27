@@ -9,4 +9,4 @@ mod day6;
 mod day7;
 mod day8;
 
-aoc_lib! { year = 2018 }
+aoc_lib! { year = 2018, extra_alternatives = ["fnv"] }

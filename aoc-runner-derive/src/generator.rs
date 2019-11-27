@@ -1,7 +1,6 @@
 use crate::types::{Generator, SpecialType};
 use crate::utils;
 use crate::utils::{to_camelcase, to_snakecase};
-use crate::AOC_RUNNER;
 use aoc_runner_internal::{DayPart, Part};
 use proc_macro as pm;
 use proc_macro2 as pm2;
@@ -17,6 +16,18 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
         .expect("generators must have defined day");
     let part = part.and_then(|p| p.to_string().parse().ok());
     let name = name.map(|i| i.to_string());
+
+    if let Some(name) = &name {
+        use std::io::Write;
+        let mut aoc_file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("target/aoc.txt")
+            .expect("could not open aoc.txt");
+
+        writeln!(aoc_file, "{}", name)
+            .expect("failed to write to aoc.txt");
+    }
 
     let input = parse_macro_input!(input as ItemFn);
     let original_fn = input.clone();
@@ -60,10 +71,11 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
 
     let gen_impl = |part: Part| {
         let generator_struct = to_camelcase(
-            &DayPart {
+            DayPart {
                 day,
                 part,
-                name: None,
+                alt: None,
+                name: name.as_ref().map(String::as_str),
             },
             "Generator",
         );
@@ -81,8 +93,8 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
     let impls = if let Some(p) = part {
         gen_impl(p)
     } else {
-        let i1 = gen_impl(Part(1));
-        let i2 = gen_impl(Part(2));
+        let i1 = gen_impl(Part::Part1);
+        let i2 = gen_impl(Part::Part2);
         quote! {
             #i1
             #i2

@@ -1,6 +1,5 @@
 use crate::types::{Generator, Solver, SpecialType};
 use crate::utils::{self, extract_result, to_camelcase, to_snakecase};
-use crate::AOC_RUNNER;
 use aoc_runner_internal::DayPart;
 use proc_macro as pm;
 use proc_macro2 as pm2;
@@ -21,11 +20,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
         .expect("runners must have a defined part");
     let name = name.map(|i| i.to_string());
 
-    if name.is_some() {
-        return pm::TokenStream::new();
-    }
-
-    let dp = DayPart { day, part, name };
+    let dp = DayPart { day, part, name: name.as_ref().map(String::as_str), alt: None };
 
     let input = parse_macro_input!(input as ItemFn);
 
@@ -66,7 +61,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
     };
 
     let mod_name = Ident::new(&format!("__{}_runner", fn_name), Span::call_site());
-    let struct_name = to_camelcase(&dp, "Runner");
+    let struct_name = to_camelcase(dp, "Runner");
 
     let runner_body = match special_type {
         Some(SpecialType::Result) => quote! { #fn_name(input).map_err(|err| err.into()) },

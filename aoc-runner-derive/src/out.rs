@@ -1,6 +1,4 @@
-use crate::map::InnerMap;
 use crate::utils::{to_camelcase, to_input, to_snakecase};
-use crate::AOC_RUNNER;
 use aoc_runner_internal::{Day, DayPart, DayParts, DayPartsBuilder, Part};
 use proc_macro as pm;
 use proc_macro2 as pm2;
@@ -9,6 +7,7 @@ use std::collections::HashSet;
 use std::fs::read_dir;
 use std::path::Path;
 use std::{env, error};
+use std::convert::TryInto;
 
 #[derive(Debug)]
 struct LibInfos {
@@ -24,51 +23,53 @@ enum MainInfos {
 pub fn lib_impl(input: pm::TokenStream) -> pm::TokenStream {
     let infos = parse_lib_infos(input).expect("failed to parse lib infos");
 
-    AOC_RUNNER.with(|map| {
-        let map = map.consume().expect("failed to consume map from lib");
-
-        let year = infos.year;
-
-        write_infos(&map, year).expect("failed to write infos from lib");
-
-        pm::TokenStream::from(headers(&map, year))
-    })
+    unimplemented!()
+//    AOC_RUNNER.with(|map| {
+//        let map = map.consume().expect("failed to consume map from lib");
+//
+//        let year = infos.year;
+//
+//        write_infos(&map, year).expect("failed to write infos from lib");
+//
+//        pm::TokenStream::from(headers(&map, year))
+//    })
 }
 
 pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
     let infos = parse_main_infos(input).expect("failed to parse main infos");
 
-    AOC_RUNNER.with(|map| {
-        let map = map.consume().expect("failed to consume map from main");
-
-        let expanded = match infos {
-            MainInfos::Ref { lib } => {
-                let infos = read_infos().expect("failed to read infos from ref main");
-                body(&infos, Some(lib))
-            }
-            MainInfos::Standalone { year } => {
-                let infos =
-                    write_infos(&map, year).expect("failed to write infos from standalone main");
-                let headers = headers(&map, year);
-                let body = body(&infos, None);
-
-                quote! {
-                    #headers
-
-                    #body
-                }
-            }
-        };
-
-        pm::TokenStream::from(expanded)
-    })
+    unimplemented!()
+//    AOC_RUNNER.with(|map| {
+//        let map = map.consume().expect("failed to consume map from main");
+//
+//        let expanded = match infos {
+//            MainInfos::Ref { lib } => {
+//                let infos = read_infos().expect("failed to read infos from ref main");
+//                body(&infos, Some(lib))
+//            }
+//            MainInfos::Standalone { year } => {
+//                let infos =
+//                    write_infos(&map, year).expect("failed to write infos from standalone main");
+//                let headers = headers(&map, year);
+//                let body = body(&infos, None);
+//
+//                quote! {
+//                    #headers
+//
+//                    #body
+//                }
+//            }
+//        };
+//
+//        pm::TokenStream::from(expanded)
+//    })
 }
 
-fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
+fn headers(year: u32) -> pm2::TokenStream {
     let day_parts_headers: pm2::TokenStream = base_day_part()
         .map(|day_part| {
-            let generator_struct = to_camelcase(&day_part, "Generator");
-            let runner_struct = to_camelcase(&day_part, "Runner");
+            let generator_struct = to_camelcase(day_part, "Generator");
+            let runner_struct = to_camelcase(day_part, "Runner");
 
             quote! {
                 pub struct #generator_struct;
@@ -133,7 +134,7 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
                 .filter_map(|file_name| {
                     let file_name = file_name.to_str()?;
                     if file_name.starts_with("day") && file_name.ends_with(".txt") {
-                        Some(Day(file_name[3..file_name.len() - 4].parse().ok()?))
+                        Some(file_name[..file_name.len() - 4].parse::<Day>().ok()?)
                     } else {
                         None
                     }
@@ -147,7 +148,7 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
         .map(|d| {
             let name = to_input(d);
 
-            let input = format!("../input/{}/day{}.txt", infos.year, d.0);
+            let input = format!("../input/{}/{}.txt", infos.year, d);
             if days_with_input.contains(&d) {
                 quote! { let #name = Some(include_str!(#input)); }
             } else {
@@ -161,29 +162,29 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
             (
                 format!(
                     "Day {} - Part {} - {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
-                    dp.day.0, dp.part.0, n
+                    dp.day.as_u8(), dp.part.as_u8(), n
                 ),
                 format!(
                     "Day {} - Part {} - {}: FAILED while {{}}:\n{{:#?}}\n",
-                    dp.day.0, dp.part.0, n
+                    dp.day.as_u8(), dp.part.as_u8(), n
                 )
             )
         } else {
             (
                 format!(
                     "Day {} - Part {}: {{}}\n\tgenerator: {{:?}},\n\trunner: {{:?}}\n",
-                    dp.day.0, dp.part.0
+                    dp.day.as_u8(), dp.part.as_u8()
                 ),
                 format! (
                     "Day {} - Part {}: FAILED while {{}}:\n{{:#?}}\n",
-                    dp.day.0, dp.part.0
+                    dp.day.as_u8(), dp.part.as_u8()
                 )
             )
         };
 
         let input = to_input(dp.day);
-        let generator = to_camelcase(&dp, "Generator");
-        let runner = to_camelcase(&dp, "Runner");
+        let generator = to_camelcase(dp, "Generator");
+        let runner = to_camelcase(dp, "Runner");
 
         quote! {
             {
@@ -244,28 +245,24 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
     }
 }
 
-fn write_infos(map: &InnerMap, year: u32) -> Result<DayParts, Box<dyn error::Error>> {
-    let mut day_parts = map
-        .iter()
-        .filter_map(|(dp, runner)| {
-            if runner.solver.is_some() {
-                Some(dp.clone())
-            } else {
-                None
-            }
-        })
-        .collect::<DayPartsBuilder>()
-        .with_year(year);
-
-    day_parts.sort();
-
-    day_parts.save()?;
-
-    Ok(day_parts)
-}
-
-fn read_infos() -> Result<DayParts, Box<dyn error::Error>> {
-    DayParts::load()
+fn write_infos(year: u32) -> Result<DayParts<'static>, Box<dyn error::Error>> {
+    unimplemented!()
+//    let mut day_parts = base_day_part()
+//        .filter_map(|(dp, runner)| {
+//            if runner.solver.is_some() {
+//                Some(dp.clone())
+//            } else {
+//                None
+//            }
+//        })
+//        .collect::<DayPartsBuilder>()
+//        .with_year(year);
+//
+//    day_parts.sort();
+//
+//    day_parts.save()?;
+//
+//    Ok(day_parts)
 }
 
 fn parse_lib_infos(infos: pm::TokenStream) -> Result<LibInfos, ()> {
@@ -339,12 +336,17 @@ fn parse_main_infos(infos: pm::TokenStream) -> Result<MainInfos, ()> {
     }
 }
 
-fn base_day_part() -> impl Iterator<Item = DayPart> {
+fn base_day_part() -> impl Iterator<Item = DayPart<'static>> {
     (1..=25).into_iter().flat_map(|day| {
-        (1..=2).into_iter().map(move |part| DayPart {
-            day: Day(day),
-            part: Part(part),
-            name: None,
+        (1..=2).into_iter().flat_map(move |part| {
+            (0..=8).into_iter().map(move |alt| {
+                DayPart {
+                    day: day.try_into().unwrap(),
+                    part: part.try_into().unwrap(),
+                    alt: alt.try_into().ok(),
+                    name: None,
+                }
+            })
         })
     })
 }

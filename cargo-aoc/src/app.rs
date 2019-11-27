@@ -91,7 +91,7 @@ impl AOCApp {
 
     fn download_input(&self, day: Day, year: u32) -> Result<(), Box<dyn error::Error>> {
         let date = AOCDate {
-            day: u32::from(day.0),
+            day: day.as_u8() as _,
             year: year as i32,
         };
 
@@ -179,18 +179,18 @@ impl AOCApp {
         }) {
             let (name, display) = if let Some(n) = &dp.name {
                 (
-                    format!("day{}_part{}_{}", dp.day.0, dp.part.0, n.to_lowercase()),
-                    format!("Day {} - Part {} - {}", dp.day.0, dp.part.0, n),
+                    format!("{}_{}_{}", dp.day, dp.part, n.to_lowercase()),
+                    format!("Day {} - Part {} - {}", dp.day.as_u8(), dp.part.as_u8(), n),
                 )
             } else {
                 (
-                    format!("day{}_part{}", dp.day.0, dp.part.0),
-                    format!("Day {} - Part {}", dp.day.0, dp.part.0),
+                    format!("{}_{}", dp.day, dp.part),
+                    format!("Day {} - Part {}", dp.day.as_u8(), dp.part.as_u8()),
                 )
             };
 
             body += &template
-                .replace("{DAY}", &day.0.to_string())
+                .replace("{DAY}", &day.as_u8().to_string())
                 .replace("{RUNNER_NAME}", &name)
                 .replace("{RUNNER_DISPLAY}", &display);
         }
@@ -305,11 +305,11 @@ impl AOCApp {
         let body: String = parts
             .into_iter()
             .map(|p| {
-                let part_name = format!("day{}_part{}", day.0, p.0);
+                let part_name = format!("{}_{}", day, p);
                 part_tpl
                     .replace("{PART_NAME}", &part_name)
-                    .replace("{DAY}", &day.0.to_string())
-                    .replace("{PART}", &p.0.to_string())
+                    .replace("{DAY}", &day.as_u8().to_string())
+                    .replace("{PART}", &p.as_u8().to_string())
                     .replace(
                         "{IMPLS}",
                         &matching_parts
@@ -321,16 +321,16 @@ impl AOCApp {
                                         "{RUNNER_NAME}",
                                         &if let Some(n) = &dp.name {
                                             format!(
-                                                "day{}_part{}_{}",
-                                                dp.day.0,
-                                                dp.part.0,
+                                                "{}_{}_{}",
+                                                dp.day,
+                                                dp.part,
                                                 n.to_lowercase()
                                             )
                                         } else {
-                                            format!("day{}_part{}", dp.day.0, dp.part.0)
+                                            format!("{}_{}", dp.day, dp.part)
                                         },
                                     )
-                                    .replace("{DAY}", &dp.day.0.to_string())
+                                    .replace("{DAY}", &dp.day.as_u8().to_string())
                                     .replace(
                                         "{NAME}",
                                         if let Some(n) = &dp.name {
@@ -358,10 +358,10 @@ impl AOCApp {
             parts
                 .into_iter()
                 .map(|p| {
-                    let gen_name = format!("day{}", day.0);
+                    let gen_name = day.to_string();
                     gen_tpl
                         .replace("{GEN_NAME}", &gen_name)
-                        .replace("{DAY}", &day.0.to_string())
+                        .replace("{DAY}", &day.as_u8().to_string())
                         .replace(
                             "{IMPLS}",
                             &matching_parts
@@ -373,16 +373,16 @@ impl AOCApp {
                                             "{RUNNER_NAME}",
                                             &if let Some(n) = &dp.name {
                                                 format!(
-                                                    "day{}_part{}_{}",
-                                                    dp.day.0,
-                                                    dp.part.0,
+                                                    "{}_{}_{}",
+                                                    dp.day,
+                                                    dp.part,
                                                     n.to_lowercase()
                                                 )
                                             } else {
-                                                format!("day{}_part{}", dp.day.0, dp.part.0)
+                                                format!("{}_{}", dp.day, dp.part)
                                             },
                                         )
-                                        .replace("{DAY}", &dp.day.0.to_string())
+                                        .replace("{DAY}", &dp.day.as_u8().to_string())
                                         .replace(
                                             "{NAME}",
                                             if let Some(n) = &dp.name {
@@ -456,7 +456,7 @@ impl AOCApp {
 }
 
 fn template_input(day: Day, year: u32, input: Option<&str>) -> String {
-    let day = day.0.to_string();
+    let day = day.as_u8().to_string();
     let path = input
         .map(|p| {
             if Path::new(p).is_relative() {

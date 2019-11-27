@@ -32,7 +32,7 @@ fn part2(freqs: &[i32]) -> i32 {
     sum
 }
 
-#[aoc(day1, part2, Fnv)]
+#[aoc(day1, part2, alt1=Fnv)]
 fn part2_fnv(freqs: &[i32]) -> i32 {
     let mut reached = FnvHashSet::default();
     let mut sum = 0;

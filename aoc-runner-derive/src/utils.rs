@@ -55,37 +55,37 @@ pub(crate) fn extract_result(ty: &syn::Type) -> Option<(SpecialType, syn::Type)>
     None
 }
 
-pub(crate) fn to_snakecase(dp: &DayPart) -> syn::Ident {
-    let DayPart { day, part, name } = dp;
+pub(crate) fn to_snakecase(dp: DayPart) -> syn::Ident {
+    let DayPart { day, part, name, alt } = dp;
     let name = if let Some(name) = name {
-        format!("day{}_part{}_{}", day.0, part.0, name.to_lowercase())
+        format!("day{}_part{}_{}", day.as_u8(), part.as_u8(), name.to_lowercase())
     } else {
-        format!("day{}_part{}", day.0, part.0)
+        format!("day{}_part{}", day.as_u8(), part.as_u8())
     };
 
     syn::Ident::new(&name, pm::Span::call_site().into())
 }
 
-pub(crate) fn to_camelcase(dp: &DayPart, suffix: &str) -> syn::Ident {
-    let DayPart { day, part, name } = dp;
+pub(crate) fn to_camelcase(dp: DayPart, suffix: &str) -> syn::Ident {
+    let DayPart { day, part, alt, .. } = dp;
 
-    let name = if let Some(name) = name {
+    let name = if let Some(alt) = alt {
         format!(
-            "Day{}Part{}{}{}",
-            day.0,
-            part.0,
-            name.to_uppercase(),
+            "Day{}Part{}Alt{}{}",
+            day.as_u8(),
+            part.as_u8(),
+            alt.as_u8(),
             suffix
         )
     } else {
-        format!("Day{}Part{}{}", day.0, part.0, suffix)
+        format!("Day{}Part{}{}", day.as_u8(), part.as_u8(), suffix)
     };
 
     syn::Ident::new(&name, pm::Span::call_site().into())
 }
 
 pub(crate) fn to_input(d: Day) -> syn::Ident {
-    syn::Ident::new(&format!("input_day{}", d.0), pm::Span::call_site().into())
+    syn::Ident::new(&format!("input_{}", d), pm::Span::call_site().into())
 }
 
 pub(crate) fn is_rls() -> bool {

@@ -1,132 +1,330 @@
-extern crate serde;
-extern crate serde_derive;
-extern crate serde_json;
-
-use serde_derive::*;
-use std::cmp::Ordering;
-use std::error;
-use std::fs;
-use std::iter::FromIterator;
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::str::FromStr;
+use std::convert::TryFrom;
+use std::cmp::Ordering;
+use std::ops::{DerefMut, Deref};
+use std::iter::FromIterator;
+use std::fmt::Display;
+use serde::export::Formatter;
+use serde::export::fmt::Error;
 
-#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Serialize, Deserialize, Ord, PartialOrd)]
-pub struct Day(pub u8);
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Ord, PartialOrd)]
+pub enum Day {
+    Day1,
+    Day2,
+    Day3,
+    Day4,
+    Day5,
+    Day6,
+    Day7,
+    Day8,
+    Day9,
+    Day10,
+    Day11,
+    Day12,
+    Day13,
+    Day14,
+    Day15,
+    Day16,
+    Day17,
+    Day18,
+    Day19,
+    Day20,
+    Day21,
+    Day22,
+    Day23,
+    Day24,
+    Day25,
+}
 
-impl FromStr for Day {
-    type Err = String;
-
-    fn from_str(day: &str) -> Result<Self, Self::Err> {
-        let slice = if day.len() < 4 || &day[..3] != "day" {
-            &day[..]
-        } else {
-            &day[3..]
-        };
-
-        slice
-            .parse()
-            .map_err(|e| format!("Failed to parse {}: {:?}", day, e))
-            .and_then(|d| {
-                if d == 0 || d > 25 {
-                    Err(format!("day {} is not between 0 and 25", d))
-                } else {
-                    Ok(Day(d))
-                }
-            })
+impl Day {
+    pub fn as_u8(self) -> u8 {
+        <Self as Into<u8>>::into(self)
     }
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Serialize, Deserialize, Ord, PartialOrd)]
-pub struct Part(pub u8);
+impl FromStr for Day {
+    type Err = &'static str;
 
-impl FromStr for Part {
-    type Err = String;
-
-    fn from_str(part: &str) -> Result<Self, Self::Err> {
-        Ok(match part {
-            "part1" | "1" => Part(1),
-            "part2" | "2" => Part(2),
-            _ => return Err(format!("Failed to parse part: {}", part)),
+    fn from_str(val: &str) -> Result<Self, Self::Err> {
+        Ok(match val {
+            "Day1" | "day1" | "D1" | "d1" => Day::Day1,
+            "Day2" | "day2" | "D2" | "d2" => Day::Day2,
+            "Day3" | "day3" | "D3" | "d3" => Day::Day3,
+            "Day4" | "day4" | "D4" | "d4" => Day::Day4,
+            "Day5" | "day5" | "D5" | "d5" => Day::Day5,
+            "Day6" | "day6" | "D6" | "d6" => Day::Day6,
+            "Day7" | "day7" | "D7" | "d7" => Day::Day7,
+            "Day8" | "day8" | "D8" | "d8" => Day::Day8,
+            "Day9" | "day9" | "D9" | "d9" => Day::Day9,
+            "Day10" | "day10" | "D10" | "d10" => Day::Day10,
+            "Day11" | "day11" | "D11" | "d11" => Day::Day11,
+            "Day12" | "day12" | "D12" | "d12" => Day::Day12,
+            "Day13" | "day13" | "D13" | "d13" => Day::Day13,
+            "Day14" | "day14" | "D14" | "d14" => Day::Day14,
+            "Day15" | "day15" | "D15" | "d15" => Day::Day15,
+            "Day16" | "day16" | "D16" | "d16" => Day::Day16,
+            "Day17" | "day17" | "D17" | "d17" => Day::Day17,
+            "Day18" | "day18" | "D18" | "d18" => Day::Day18,
+            "Day19" | "day19" | "D19" | "d19" => Day::Day19,
+            "Day20" | "day20" | "D20" | "d20" => Day::Day20,
+            "Day21" | "day21" | "D21" | "d21" => Day::Day21,
+            "Day22" | "day22" | "D22" | "d22" => Day::Day22,
+            "Day23" | "day23" | "D23" | "d23" => Day::Day23,
+            "Day24" | "day24" | "D24" | "d24" => Day::Day24,
+            "Day25" | "day25" | "D25" | "d25" => Day::Day25,
+            _ => return Err("Failed to parse day, allowed patterns: DayX, dayX, DX, dX with X in 1..=25"),
         })
     }
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, Clone, Serialize, Deserialize)]
-pub struct DayPart {
-    pub day: Day,
-    pub part: Part,
-    pub name: Option<String>,
+impl TryFrom<u8> for Day {
+    type Error = &'static str;
+
+    fn try_from(val: u8) -> Result<Self, Self::Error> {
+        Ok(match val {
+            1 => Day::Day1,
+            2 => Day::Day2,
+            3 => Day::Day3,
+            4 => Day::Day4,
+            5 => Day::Day5,
+            6 => Day::Day6,
+            7 => Day::Day7,
+            8 => Day::Day8,
+            9 => Day::Day9,
+            10 => Day::Day10,
+            11 => Day::Day11,
+            12 => Day::Day12,
+            13 => Day::Day13,
+            14 => Day::Day14,
+            15 => Day::Day15,
+            16 => Day::Day16,
+            17 => Day::Day17,
+            18 => Day::Day18,
+            19 => Day::Day19,
+            20 => Day::Day20,
+            21 => Day::Day21,
+            22 => Day::Day22,
+            23 => Day::Day23,
+            24 => Day::Day24,
+            25 => Day::Day25,
+            _ => return Err("Day must be in range 1..=25"),
+        })
+    }
 }
 
-impl DayPart {
-    pub fn without_name(&self) -> DayPart {
-        DayPart {
-            name: None,
-            day: self.day,
-            part: self.part,
+impl Into<u8> for Day {
+    fn into(self) -> u8 {
+        match self {
+            Day::Day1 => 1,
+            Day::Day2 => 2,
+            Day::Day3 => 3,
+            Day::Day4 => 4,
+            Day::Day5 => 5,
+            Day::Day6 => 6,
+            Day::Day7 => 7,
+            Day::Day8 => 8,
+            Day::Day9 => 9,
+            Day::Day10 => 10,
+            Day::Day11 => 11,
+            Day::Day12 => 12,
+            Day::Day13 => 13,
+            Day::Day14 => 14,
+            Day::Day15 => 15,
+            Day::Day16 => 16,
+            Day::Day17 => 17,
+            Day::Day18 => 18,
+            Day::Day19 => 19,
+            Day::Day20 => 20,
+            Day::Day21 => 21,
+            Day::Day22 => 22,
+            Day::Day23 => 23,
+            Day::Day24 => 24,
+            Day::Day25 => 25,
         }
     }
 }
 
-impl PartialOrd for DayPart {
+impl Display for Day {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        write!(f, "day{}", self.as_u8())
+    }
+}
+
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Ord, PartialOrd)]
+pub enum Part {
+    Part1,
+    Part2,
+}
+
+impl Part {
+    pub fn as_u8(self) -> u8 {
+        <Self as Into<u8>>::into(self)
+    }
+}
+
+impl FromStr for Part {
+    type Err = &'static str;
+
+    fn from_str(val: &str) -> Result<Self, Self::Err> {
+        Ok(match val {
+            "Part1" | "part1" | "P1" | "p1" => Part::Part1,
+            "Part2" | "part2" | "P2" | "p2" => Part::Part2,
+            _ => return Err("Failed to parse part, allowed patterns: PartX, partX, PX, pX with X in 1..=2"),
+        })
+    }
+}
+
+impl TryFrom<u8> for Part {
+    type Error = &'static str;
+
+    fn try_from(val: u8) -> Result<Self, Self::Error> {
+        Ok(match val {
+            1 => Part::Part1,
+            2 => Part::Part2,
+            _ => return Err("Part must be in range 1..=2"),
+        })
+    }
+}
+
+impl Into<u8> for Part {
+    fn into(self) -> u8 {
+        match self {
+            Part::Part1 => 1,
+            Part::Part2 => 2,
+        }
+    }
+}
+
+impl Display for Part {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        write!(f, "part{}", self.as_u8())
+    }
+}
+
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Ord, PartialOrd)]
+pub enum Alternative {
+    Alt1,
+    Alt2,
+    Alt3,
+    Alt4,
+    Alt5,
+    Alt6,
+    Alt7,
+    Alt8,
+}
+
+impl Alternative {
+    pub fn as_u8(self) -> u8 {
+        <Self as Into<u8>>::into(self)
+    }
+}
+
+impl FromStr for Alternative {
+    type Err = &'static str;
+
+    fn from_str(val: &str) -> Result<Self, Self::Err> {
+        Ok(match val {
+            "Alternative1" | "alternative1" | "Alt1" | "alt1" | "A1" | "a1" => Alternative::Alt1,
+            "Alternative2" | "alternative2" | "Alt2" | "alt2" | "A2" | "a2" => Alternative::Alt2,
+            "Alternative3" | "alternative3" | "Alt3" | "alt3" | "A3" | "a3" => Alternative::Alt3,
+            "Alternative4" | "alternative4" | "Alt4" | "alt4" | "A4" | "a4" => Alternative::Alt4,
+            "Alternative5" | "alternative5" | "Alt5" | "alt5" | "A5" | "a5" => Alternative::Alt5,
+            "Alternative6" | "alternative6" | "Alt6" | "alt6" | "A6" | "a6" => Alternative::Alt6,
+            "Alternative7" | "alternative7" | "Alt7" | "alt7" | "A7" | "a7" => Alternative::Alt7,
+            "Alternative8" | "alternative8" | "Alt8" | "alt8" | "A8" | "a8" => Alternative::Alt8,
+            _ => return Err("Failed to parse alternative, allowed patterns: AlternativeX, alternativeX, AltX, altX, AX, aX with X in 1..=8"),
+        })
+    }
+}
+
+impl TryFrom<u8> for Alternative {
+    type Error = &'static str;
+
+    fn try_from(val: u8) -> Result<Self, Self::Error> {
+        Ok(match val {
+            1 => Alternative::Alt1,
+            2 => Alternative::Alt2,
+            3 => Alternative::Alt3,
+            4 => Alternative::Alt4,
+            5 => Alternative::Alt5,
+            6 => Alternative::Alt6,
+            7 => Alternative::Alt7,
+            8 => Alternative::Alt8,
+            _ => return Err("Alternative must be in range 1..=8"),
+        })
+    }
+}
+
+impl Into<u8> for Alternative {
+    fn into(self) -> u8 {
+        match self {
+            Alternative::Alt1 => 1,
+            Alternative::Alt2 => 2,
+            Alternative::Alt3 => 3,
+            Alternative::Alt4 => 4,
+            Alternative::Alt5 => 5,
+            Alternative::Alt6 => 6,
+            Alternative::Alt7 => 7,
+            Alternative::Alt8 => 8,
+        }
+    }
+}
+
+impl Display for Alternative {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        write!(f, "alt{}", self.as_u8())
+    }
+}
+
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
+pub struct DayPart<'a> {
+    pub day: Day,
+    pub part: Part,
+    pub alt: Option<Alternative>,
+    pub name: Option<&'a str>,
+}
+
+impl PartialOrd for DayPart<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(&other))
     }
 }
 
-impl Ord for DayPart {
+impl Ord for DayPart<'_> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.day
             .cmp(&other.day)
             .then(self.part.cmp(&other.part))
-            .then(self.name.cmp(&other.name))
+            .then(self.alt.cmp(&other.alt))
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct DayParts {
+#[derive(Debug)]
+pub struct DayParts<'a> {
     pub year: u32,
-    parts: Vec<DayPart>,
+    parts: Vec<DayPart<'a>>,
 }
 
-impl DayParts {
-    pub fn save(&self) -> Result<(), Box<dyn error::Error>> {
-        fs::create_dir_all("target/aoc")?;
-        let f = fs::File::create("target/aoc/completed.json")?;
+impl<'a> Deref for DayParts<'a> {
+    type Target = [DayPart<'a>];
 
-        serde_json::to_writer_pretty(f, &self)?;
-
-        Ok(())
-    }
-
-    pub fn load() -> Result<Self, Box<dyn error::Error>> {
-        let f = fs::File::open("target/aoc/completed.json")?;
-
-        Ok(serde_json::from_reader(f)?)
-    }
-}
-
-impl Deref for DayParts {
-    type Target = [DayPart];
-
-    fn deref(&self) -> &[DayPart] {
+    fn deref(&self) -> &Self::Target {
         &self.parts
     }
 }
 
-impl DerefMut for DayParts {
-    fn deref_mut(&mut self) -> &mut [DayPart] {
+impl<'a> DerefMut for DayParts<'a> {
+    fn deref_mut(&mut self) -> &mut [DayPart<'a>] {
         &mut self.parts
     }
 }
 
-pub struct DayPartsBuilder {
-    parts: Vec<DayPart>,
+pub struct DayPartsBuilder<'a> {
+    parts: Vec<DayPart<'a>>,
 }
 
-impl DayPartsBuilder {
-    pub fn with_year(self, year: u32) -> DayParts {
+impl<'a> DayPartsBuilder<'a> {
+    pub fn with_year(self, year: u32) -> DayParts<'a> {
         DayParts {
             year,
             parts: self.parts,
@@ -134,8 +332,8 @@ impl DayPartsBuilder {
     }
 }
 
-impl FromIterator<DayPart> for DayPartsBuilder {
-    fn from_iter<T: IntoIterator<Item = DayPart>>(iter: T) -> Self {
+impl<'a> FromIterator<DayPart<'a>> for DayPartsBuilder<'a> {
+    fn from_iter<T: IntoIterator<Item = DayPart<'a>>>(iter: T) -> Self {
         let parts = iter.into_iter().collect();
         DayPartsBuilder { parts }
     }
