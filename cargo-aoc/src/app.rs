@@ -82,7 +82,8 @@ impl AOCApp {
                     file.write_all(body.as_bytes()).unwrap_or_else(|_| panic!("Could not write to {}", filename));
                 }
                 sc => println!(
-                    "Could not find corresponding input. Are the day, year, and token correctly set ? Status: {}", sc
+                    "Could not find corresponding input. Are the day, year, and token correctly set ? Status: {}\
+                    Message: {}", sc, response.text().unwrap_or_else(|_| String::new())
                 ),
             },
             Err(e) => println!("Failed to get a response: {}", e),

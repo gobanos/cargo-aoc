@@ -9,8 +9,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "advent-of-code-2018"
 version = "0.2.0"
 dependencies = [
- "aoc-runner 0.2.2",
- "aoc-runner-derive 0.2.2",
+ "aoc-runner 0.3.0",
+ "aoc-runner-derive 0.3.0",
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "petgraph 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -34,11 +34,11 @@ dependencies = [
 
 [[package]]
 name = "aoc-runner"
-version = "0.2.2"
+version = "0.3.0"
 
 [[package]]
 name = "aoc-runner-derive"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "aoc-runner-internal 0.1.0",
  "proc-macro2 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -136,7 +136,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-aoc"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "aoc-runner-internal 0.1.0",
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
