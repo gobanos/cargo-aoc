@@ -4,60 +4,6 @@ use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 pub use void::Void;
 
-#[inline]
-pub fn identity<T>(t: T) -> T {
-    t
-}
-
-#[derive(Clone, Debug)]
-pub struct ArcStr(Arc<str>);
-
-impl ArcStr {
-    #[inline]
-    pub fn from(f: &str) -> ArcStr {
-        ArcStr(Arc::from(f.trim_end_matches('\n')))
-    }
-}
-
-impl Borrow<str> for ArcStr {
-    fn borrow(&self) -> &str {
-        self.0.borrow()
-    }
-}
-
-impl Borrow<[u8]> for ArcStr {
-    fn borrow(&self) -> &[u8] {
-        self.0.as_bytes()
-    }
-}
-
-impl Borrow<Arc<str>> for ArcStr {
-    fn borrow(&self) -> &Arc<str> {
-        &self.0
-    }
-}
-
-pub trait Runner {
-    fn gen(input: ArcStr) -> Self
-    where
-        Self: Sized;
-
-    fn run(&self) -> Box<dyn Display>;
-
-    fn bench(&self, black_box: fn(&dyn Display));
-
-    fn try_gen(input: ArcStr) -> Result<Self, Box<dyn Error>>
-    where
-        Self: Sized,
-    {
-        Ok(Self::gen(input))
-    }
-
-    fn try_run(&self) -> Result<Box<dyn Display>, Box<dyn Error>> {
-        Ok(self.run())
-    }
-}
-
 pub trait Generator<'a> {
     type Output;
 
@@ -68,13 +14,43 @@ pub trait Generator<'a> {
     }
 }
 
-pub trait RunnerV2<'a, I> {
+pub trait Runner<'a, I> {
     type Output;
 
     fn run(&self, input: I) -> Result<Self::Output, Box<dyn Error>>;
 
     fn is_implemented(&self) -> bool {
         true
+    }
+}
+
+pub trait GeneratorDefault {}
+
+impl<'a, T> Generator<'a> for &T where T: GeneratorDefault {
+    type Output = &'a str;
+
+    fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
+        Ok(input)
+    }
+
+    fn is_default(&self) -> bool {
+        true
+    }
+}
+
+pub trait RunnerDefault {
+    type Input;
+}
+
+impl<'a, I, T> Runner<'a, I> for &T where T: RunnerDefault<Input = I> {
+    type Output = Void;
+
+    fn run(&self, _input: I) -> Result<Self::Output, Box<dyn Error>> {
+        Err(Box::new(NotImplemented))
+    }
+
+    fn is_implemented(&self) -> bool {
+        false
     }
 }
 

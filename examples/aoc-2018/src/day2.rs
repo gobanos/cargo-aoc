@@ -26,7 +26,7 @@ fn part1(input: &str) -> u32 {
     nb_double * nb_triple
 }
 
-#[aoc(day2, part1, Fnv)]
+#[aoc(day2, part1, alt1, Fnv)]
 fn part1_fnv(input: &str) -> u32 {
     let (nb_double, nb_triple) = input
         .lines()

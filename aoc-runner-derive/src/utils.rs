@@ -5,7 +5,12 @@ use syn;
 
 pub(crate) fn extract_meta(
     args: pm::TokenStream,
-) -> (syn::Ident, Option<syn::Ident>, Option<syn::Ident>) {
+) -> (
+    syn::Ident,
+    Option<syn::Ident>,
+    Option<syn::Ident>,
+    Option<syn::Ident>,
+) {
     let mut idents = args.into_iter().filter_map(|a| {
         if let pm::TokenTree::Ident(_) = a {
             Some(a.into())
@@ -18,9 +23,10 @@ pub(crate) fn extract_meta(
     let day: syn::Ident = syn::parse(day).expect("failed to parse day");
 
     let part = idents.next().and_then(|i| syn::parse(i).ok());
+    let alt = idents.next().and_then(|i| syn::parse(i).ok());
     let name = idents.next().and_then(|i| syn::parse(i).ok());
 
-    (day, part, name)
+    (day, part, alt, name)
 }
 
 pub(crate) fn extract_result(ty: &syn::Type) -> Option<(SpecialType, syn::Type)> {
@@ -56,9 +62,19 @@ pub(crate) fn extract_result(ty: &syn::Type) -> Option<(SpecialType, syn::Type)>
 }
 
 pub(crate) fn to_snakecase(dp: DayPart) -> syn::Ident {
-    let DayPart { day, part, name, alt } = dp;
+    let DayPart {
+        day,
+        part,
+        name,
+        alt,
+    } = dp;
     let name = if let Some(name) = name {
-        format!("day{}_part{}_{}", day.as_u8(), part.as_u8(), name.to_lowercase())
+        format!(
+            "day{}_part{}_{}",
+            day.as_u8(),
+            part.as_u8(),
+            name.to_lowercase()
+        )
     } else {
         format!("day{}_part{}", day.as_u8(), part.as_u8())
     };
@@ -69,17 +85,13 @@ pub(crate) fn to_snakecase(dp: DayPart) -> syn::Ident {
 pub(crate) fn to_camelcase(dp: DayPart, suffix: &str) -> syn::Ident {
     let DayPart { day, part, alt, .. } = dp;
 
-    let name = if let Some(alt) = alt {
-        format!(
-            "Day{}Part{}Alt{}{}",
-            day.as_u8(),
-            part.as_u8(),
-            alt.as_u8(),
-            suffix
-        )
-    } else {
-        format!("Day{}Part{}{}", day.as_u8(), part.as_u8(), suffix)
-    };
+    let name = format!(
+        "Day{}Part{}Alt{}{}",
+        day.as_u8(),
+        part.as_u8(),
+        alt.as_u8(),
+        suffix
+    );
 
     syn::Ident::new(&name, pm::Span::call_site().into())
 }

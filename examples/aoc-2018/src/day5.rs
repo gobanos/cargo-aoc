@@ -26,12 +26,12 @@ fn part2(input: &[u8]) -> Option<usize> {
         .min()
 }
 
-#[aoc(day5, part1, Stack)]
+#[aoc(day5, part1, alt1, Stack)]
 fn part1_stack(input: &[u8]) -> usize {
     stack(input)
 }
 
-#[aoc(day5, part2, Stack)]
+#[aoc(day5, part2, alt1, Stack)]
 fn part2_stack(input: &[u8]) -> Option<usize> {
     (b'A'..=b'Z')
         .map(|c| stack(input.iter().filter(|&&a| a != c && a != c + DIFF)))

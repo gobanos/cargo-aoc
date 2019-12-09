@@ -1,20 +1,22 @@
 use crate::types::{Generator, SpecialType};
 use crate::utils;
 use crate::utils::{to_camelcase, to_snakecase};
-use aoc_runner_internal::{DayPart, Part};
+use aoc_runner_internal::{Alternative, DayPart, Part};
 use proc_macro as pm;
 use proc_macro2 as pm2;
 use proc_macro2::Span;
 use quote::quote;
+use std::convert::TryInto;
 use syn::*;
 
 pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenStream {
-    let (day, part, name) = utils::extract_meta(args);
+    let (day, part, alt, name) = utils::extract_meta(args);
     let day = day
         .to_string()
         .parse()
         .expect("generators must have defined day");
     let part = part.and_then(|p| p.to_string().parse().ok());
+    let alt = alt.and_then(|p| p.to_string().parse().ok());
     let name = name.map(|i| i.to_string());
 
     if let Some(name) = &name {
@@ -25,8 +27,7 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
             .open("target/aoc.txt")
             .expect("could not open aoc.txt");
 
-        writeln!(aoc_file, "{}", name)
-            .expect("failed to write to aoc.txt");
+        writeln!(aoc_file, "{}", name).expect("failed to write to aoc.txt");
     }
 
     let input = parse_macro_input!(input as ItemFn);
@@ -69,12 +70,12 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
         None => quote! { Ok(#generator_name(input)) },
     };
 
-    let gen_impl = |part: Part| {
+    let gen_impl = |part: Part, alt: Alternative| {
         let generator_struct = to_camelcase(
             DayPart {
                 day,
                 part,
-                alt: None,
+                alt,
                 name: name.as_ref().map(String::as_str),
             },
             "Generator",
@@ -83,22 +84,28 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
             impl<'a> aoc_runner::Generator<'a> for crate::__aoc::#generator_struct {
                 type Output = #out_t;
 
-                fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
+                fn generate(&self, input: &'a str) -> std::result::Result<Self::Output, Box<dyn std::error::Error>> {
                     #generator_body
                 }
             }
         }
     };
 
-    let impls = if let Some(p) = part {
-        gen_impl(p)
-    } else {
-        let i1 = gen_impl(Part::Part1);
-        let i2 = gen_impl(Part::Part2);
-        quote! {
-            #i1
-            #i2
-        }
+    let impls = match (part, alt) {
+        (Some(part), Some(alt)) => gen_impl(part, alt),
+        (Some(part), None) => (0..=4)
+            .into_iter()
+            .map(|alt| gen_impl(part, alt.try_into().unwrap()))
+            .collect(),
+        (None, Some(alt)) => (1..=2)
+            .into_iter()
+            .map(|part| gen_impl(part.try_into().unwrap(), alt))
+            .collect(),
+        (None, None) => (1..=2)
+            .into_iter()
+            .flat_map(|part| (0..=4).into_iter().map(move |alt| (part, alt)))
+            .map(|(part, alt)| gen_impl(part.try_into().unwrap(), alt.try_into().unwrap()))
+            .collect(),
     };
 
     (quote! {
@@ -107,7 +114,6 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
         #[doc(hidden)]
         pub mod #mod_name {
             use super::*;
-            use std::error::Error;
 
             #impls
         }

@@ -1,11 +1,11 @@
-use std::str::FromStr;
-use std::convert::TryFrom;
-use std::cmp::Ordering;
-use std::ops::{DerefMut, Deref};
-use std::iter::FromIterator;
-use std::fmt::Display;
-use serde::export::Formatter;
 use serde::export::fmt::Error;
+use serde::export::Formatter;
+use std::cmp::Ordering;
+use std::convert::TryFrom;
+use std::fmt::Display;
+use std::iter::FromIterator;
+use std::ops::{Deref, DerefMut};
+use std::str::FromStr;
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Ord, PartialOrd)]
 pub enum Day {
@@ -72,7 +72,11 @@ impl FromStr for Day {
             "Day23" | "day23" | "D23" | "d23" => Day::Day23,
             "Day24" | "day24" | "D24" | "d24" => Day::Day24,
             "Day25" | "day25" | "D25" | "d25" => Day::Day25,
-            _ => return Err("Failed to parse day, allowed patterns: DayX, dayX, DX, dX with X in 1..=25"),
+            _ => {
+                return Err(
+                    "Failed to parse day, allowed patterns: DayX, dayX, DX, dX with X in 1..=25",
+                )
+            }
         })
     }
 }
@@ -169,7 +173,11 @@ impl FromStr for Part {
         Ok(match val {
             "Part1" | "part1" | "P1" | "p1" => Part::Part1,
             "Part2" | "part2" | "P2" | "p2" => Part::Part2,
-            _ => return Err("Failed to parse part, allowed patterns: PartX, partX, PX, pX with X in 1..=2"),
+            _ => {
+                return Err(
+                    "Failed to parse part, allowed patterns: PartX, partX, PX, pX with X in 1..=2",
+                )
+            }
         })
     }
 }
@@ -203,14 +211,15 @@ impl Display for Part {
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone, Ord, PartialOrd)]
 pub enum Alternative {
+    Default,
     Alt1,
     Alt2,
     Alt3,
     Alt4,
-    Alt5,
-    Alt6,
-    Alt7,
-    Alt8,
+//    Alt5,
+//    Alt6,
+//    Alt7,
+//    Alt8,
 }
 
 impl Alternative {
@@ -224,15 +233,16 @@ impl FromStr for Alternative {
 
     fn from_str(val: &str) -> Result<Self, Self::Err> {
         Ok(match val {
+            "Default" | "default" | "Alternative0" | "alternative0" | "Alt0" | "alt0" | "A0" | "a0" => Alternative::Default,
             "Alternative1" | "alternative1" | "Alt1" | "alt1" | "A1" | "a1" => Alternative::Alt1,
             "Alternative2" | "alternative2" | "Alt2" | "alt2" | "A2" | "a2" => Alternative::Alt2,
             "Alternative3" | "alternative3" | "Alt3" | "alt3" | "A3" | "a3" => Alternative::Alt3,
             "Alternative4" | "alternative4" | "Alt4" | "alt4" | "A4" | "a4" => Alternative::Alt4,
-            "Alternative5" | "alternative5" | "Alt5" | "alt5" | "A5" | "a5" => Alternative::Alt5,
-            "Alternative6" | "alternative6" | "Alt6" | "alt6" | "A6" | "a6" => Alternative::Alt6,
-            "Alternative7" | "alternative7" | "Alt7" | "alt7" | "A7" | "a7" => Alternative::Alt7,
-            "Alternative8" | "alternative8" | "Alt8" | "alt8" | "A8" | "a8" => Alternative::Alt8,
-            _ => return Err("Failed to parse alternative, allowed patterns: AlternativeX, alternativeX, AltX, altX, AX, aX with X in 1..=8"),
+//            "Alternative5" | "alternative5" | "Alt5" | "alt5" | "A5" | "a5" => Alternative::Alt5,
+//            "Alternative6" | "alternative6" | "Alt6" | "alt6" | "A6" | "a6" => Alternative::Alt6,
+//            "Alternative7" | "alternative7" | "Alt7" | "alt7" | "A7" | "a7" => Alternative::Alt7,
+//            "Alternative8" | "alternative8" | "Alt8" | "alt8" | "A8" | "a8" => Alternative::Alt8,
+            _ => return Err("Failed to parse alternative, allowed patterns: Default, default, AlternativeX, alternativeX, AltX, altX, AX, aX with X in 1..=8"),
         })
     }
 }
@@ -242,15 +252,16 @@ impl TryFrom<u8> for Alternative {
 
     fn try_from(val: u8) -> Result<Self, Self::Error> {
         Ok(match val {
+            0 => Alternative::Default,
             1 => Alternative::Alt1,
             2 => Alternative::Alt2,
             3 => Alternative::Alt3,
             4 => Alternative::Alt4,
-            5 => Alternative::Alt5,
-            6 => Alternative::Alt6,
-            7 => Alternative::Alt7,
-            8 => Alternative::Alt8,
-            _ => return Err("Alternative must be in range 1..=8"),
+//            5 => Alternative::Alt5,
+//            6 => Alternative::Alt6,
+//            7 => Alternative::Alt7,
+//            8 => Alternative::Alt8,
+            _ => return Err("Alternative must be in range 0..=8"),
         })
     }
 }
@@ -258,21 +269,25 @@ impl TryFrom<u8> for Alternative {
 impl Into<u8> for Alternative {
     fn into(self) -> u8 {
         match self {
+            Alternative::Default => 0,
             Alternative::Alt1 => 1,
             Alternative::Alt2 => 2,
             Alternative::Alt3 => 3,
             Alternative::Alt4 => 4,
-            Alternative::Alt5 => 5,
-            Alternative::Alt6 => 6,
-            Alternative::Alt7 => 7,
-            Alternative::Alt8 => 8,
+//            Alternative::Alt5 => 5,
+//            Alternative::Alt6 => 6,
+//            Alternative::Alt7 => 7,
+//            Alternative::Alt8 => 8,
         }
     }
 }
 
 impl Display for Alternative {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        write!(f, "alt{}", self.as_u8())
+        match self {
+            Alternative::Default => write!(f, "default"),
+            _ => write!(f, "alt{}", self.as_u8()),
+        }
     }
 }
 
@@ -280,7 +295,7 @@ impl Display for Alternative {
 pub struct DayPart<'a> {
     pub day: Day,
     pub part: Part,
-    pub alt: Option<Alternative>,
+    pub alt: Alternative,
     pub name: Option<&'a str>,
 }
 

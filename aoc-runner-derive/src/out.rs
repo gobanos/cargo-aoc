@@ -4,10 +4,10 @@ use proc_macro as pm;
 use proc_macro2 as pm2;
 use quote::quote;
 use std::collections::HashSet;
+use std::convert::TryInto;
 use std::fs::read_dir;
 use std::path::Path;
 use std::{env, error};
-use std::convert::TryInto;
 
 #[derive(Debug)]
 struct LibInfos {
@@ -23,46 +23,28 @@ enum MainInfos {
 pub fn lib_impl(input: pm::TokenStream) -> pm::TokenStream {
     let infos = parse_lib_infos(input).expect("failed to parse lib infos");
 
-    unimplemented!()
-//    AOC_RUNNER.with(|map| {
-//        let map = map.consume().expect("failed to consume map from lib");
-//
-//        let year = infos.year;
-//
-//        write_infos(&map, year).expect("failed to write infos from lib");
-//
-//        pm::TokenStream::from(headers(&map, year))
-//    })
+    let year = infos.year;
+    pm::TokenStream::from(headers(year))
 }
 
 pub fn main_impl(input: pm::TokenStream) -> pm::TokenStream {
     let infos = parse_main_infos(input).expect("failed to parse main infos");
 
-    unimplemented!()
-//    AOC_RUNNER.with(|map| {
-//        let map = map.consume().expect("failed to consume map from main");
-//
-//        let expanded = match infos {
-//            MainInfos::Ref { lib } => {
-//                let infos = read_infos().expect("failed to read infos from ref main");
-//                body(&infos, Some(lib))
-//            }
-//            MainInfos::Standalone { year } => {
-//                let infos =
-//                    write_infos(&map, year).expect("failed to write infos from standalone main");
-//                let headers = headers(&map, year);
-//                let body = body(&infos, None);
-//
-//                quote! {
-//                    #headers
-//
-//                    #body
-//                }
-//            }
-//        };
-//
-//        pm::TokenStream::from(expanded)
-//    })
+    let expanded = match infos {
+        MainInfos::Ref { lib } => body(Some(lib)),
+        MainInfos::Standalone { year } => {
+            let headers = headers(year);
+            let body = body(None);
+
+            quote! {
+                #headers
+
+                #body
+            }
+        }
+    };
+
+    pm::TokenStream::from(expanded)
 }
 
 fn headers(year: u32) -> pm2::TokenStream {
@@ -74,30 +56,12 @@ fn headers(year: u32) -> pm2::TokenStream {
             quote! {
                 pub struct #generator_struct;
 
-                impl<'a> Generator<'a> for &#generator_struct {
-                    type Output = &'a str;
-
-                    fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
-                        Ok(input)
-                    }
-
-                    fn is_default(&self) -> bool {
-                        true
-                    }
-                }
+                impl GeneratorDefault for #generator_struct {}
 
                 pub struct #runner_struct<I>(pub PhantomData<I>);
 
-                impl<'a, I> RunnerV2<'a, I> for &#runner_struct<I> {
-                    type Output = Void;
-
-                    fn run(&self, _input: I) -> Result<Self::Output, Box<dyn Error>> {
-                        Err(Box::new(NotImplemented))
-                    }
-
-                    fn is_implemented(&self) -> bool {
-                        false
-                    }
+                impl<I> RunnerDefault for #runner_struct<I> {
+                    type Input = I;
                 }
             }
         })
@@ -106,8 +70,7 @@ fn headers(year: u32) -> pm2::TokenStream {
     quote! {
         #[doc(hidden)]
         pub mod __aoc {
-            use aoc_runner::{Generator, NotImplemented, RunnerV2, Void};
-            use std::error::Error;
+            use aoc_runner::{Generator, GeneratorDefault, Runner, RunnerDefault};
             use std::marker::PhantomData;
 
             pub const YEAR : u32 = #year;
@@ -117,14 +80,14 @@ fn headers(year: u32) -> pm2::TokenStream {
     }
 }
 
-fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
+fn body(lib: Option<pm2::Ident>) -> pm2::TokenStream {
     let mut days: Vec<_> = base_day_part().map(|dp| dp.day).collect();
     days.sort();
     days.dedup();
 
     let input_dir = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string()))
         .join("input")
-        .join(&infos.year.to_string());
+        .join(&2018.to_string()); // TODO: Use constant in user runtime
 
     let days_with_input = read_dir(&input_dir)
         .map(|files| {
@@ -148,7 +111,7 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
         .map(|d| {
             let name = to_input(d);
 
-            let input = format!("../input/{}/{}.txt", infos.year, d);
+            let input = format!("../input/{}/{}.txt", 2018, d); // TODO: Use constant in user runtime
             if days_with_input.contains(&d) {
                 quote! { let #name = Some(include_str!(#input)); }
             } else {
@@ -216,7 +179,7 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
         quote! {
             fn main() {
                 use #lib::__aoc::*;
-                use aoc_runner::{Generator, RunnerV2};
+                use aoc_runner::{Generator, Runner};
                 use std::marker::PhantomData;
                 use std::time::{Duration, Instant};
 
@@ -231,7 +194,7 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
         quote! {
             fn main() {
                 use crate::__aoc::*;
-                use aoc_runner::{Generator, RunnerV2};
+                use aoc_runner::{Generator, Runner};
                 use std::marker::PhantomData;
                 use std::time::{Duration, Instant};
 
@@ -247,22 +210,22 @@ fn body(infos: &DayParts, lib: Option<pm2::Ident>) -> pm2::TokenStream {
 
 fn write_infos(year: u32) -> Result<DayParts<'static>, Box<dyn error::Error>> {
     unimplemented!()
-//    let mut day_parts = base_day_part()
-//        .filter_map(|(dp, runner)| {
-//            if runner.solver.is_some() {
-//                Some(dp.clone())
-//            } else {
-//                None
-//            }
-//        })
-//        .collect::<DayPartsBuilder>()
-//        .with_year(year);
-//
-//    day_parts.sort();
-//
-//    day_parts.save()?;
-//
-//    Ok(day_parts)
+    //    let mut day_parts = base_day_part()
+    //        .filter_map(|(dp, runner)| {
+    //            if runner.solver.is_some() {
+    //                Some(dp.clone())
+    //            } else {
+    //                None
+    //            }
+    //        })
+    //        .collect::<DayPartsBuilder>()
+    //        .with_year(year);
+    //
+    //    day_parts.sort();
+    //
+    //    day_parts.save()?;
+    //
+    //    Ok(day_parts)
 }
 
 fn parse_lib_infos(infos: pm::TokenStream) -> Result<LibInfos, ()> {
@@ -339,13 +302,11 @@ fn parse_main_infos(infos: pm::TokenStream) -> Result<MainInfos, ()> {
 fn base_day_part() -> impl Iterator<Item = DayPart<'static>> {
     (1..=25).into_iter().flat_map(|day| {
         (1..=2).into_iter().flat_map(move |part| {
-            (0..=8).into_iter().map(move |alt| {
-                DayPart {
-                    day: day.try_into().unwrap(),
-                    part: part.try_into().unwrap(),
-                    alt: alt.try_into().ok(),
-                    name: None,
-                }
+            (0..=4).into_iter().map(move |alt| DayPart {
+                day: day.try_into().unwrap(),
+                part: part.try_into().unwrap(),
+                alt: alt.try_into().unwrap(),
+                name: None,
             })
         })
     })

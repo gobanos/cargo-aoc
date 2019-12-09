@@ -8,7 +8,7 @@ fn parse_input_day1(input: &str) -> Result<Vec<i32>, ParseIntError> {
     input.lines().map(|l| l.parse()).collect()
 }
 
-#[aoc(day1, part1)]
+#[aoc(day1, part1, alt2)]
 fn part1(freqs: &[i32]) -> i32 {
     freqs.iter().sum()
 }

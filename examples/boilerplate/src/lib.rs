@@ -1,6 +1,6 @@
 #[doc(hidden)]
 pub mod __aoc {
-    use aoc_runner::{Generator, NotImplemented, RunnerV2, Void};
+    use aoc_runner::{Generator, NotImplemented, Runner, Void};
     use std::error::Error;
     use std::marker::PhantomData;
 
@@ -34,7 +34,7 @@ pub mod __aoc {
 
     pub struct Day1Part1Runner<I>(pub PhantomData<I>);
 
-    impl<'a, I> RunnerV2<'a, I> for &Day1Part1Runner<I> {
+    impl<'a, I> Runner<'a, I> for &Day1Part1Runner<I> {
         type Output = Void;
 
         fn run(&self, _input: I) -> Result<Self::Output, Box<dyn Error>> {
@@ -48,7 +48,7 @@ pub mod __aoc {
 
     pub struct Day1Part2Runner<I>(pub PhantomData<I>);
 
-    impl<'a, I> RunnerV2<'a, I> for &Day1Part2Runner<I> {
+    impl<'a, I> Runner<'a, I> for &Day1Part2Runner<I> {
         type Output = ();
 
         fn run(&self, _input: I) -> Result<Self::Output, Box<dyn Error>> {
@@ -70,26 +70,26 @@ pub mod day1 {
     }
 
     #[doc(hidden)]
-    pub mod __parse_input_day1_aoc_generator {
-        use super::parse_input_day1;
-        use std::error::Error;
-
-        impl<'a> aoc_runner::Generator<'a> for crate::__aoc::Day1Part1Generator {
-            type Output = Vec<i32>;
-
-            fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
-                parse_input_day1(input).map_err(|err| err.into())
-            }
-        }
-
-        impl<'a> aoc_runner::Generator<'a> for crate::__aoc::Day1Part2Generator {
-            type Output = Vec<i32>;
-
-            fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
-                parse_input_day1(input).map_err(|err| err.into())
-            }
-        }
-    }
+    //    pub mod __parse_input_day1_aoc_generator {
+    //        use super::parse_input_day1;
+    //        use std::error::Error;
+    //
+    //        impl<'a> aoc_runner::Generator<'a> for crate::__aoc::Day1Part1Generator {
+    //            type Output = Vec<i32>;
+    //
+    //            fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
+    //                parse_input_day1(input).map_err(|err| err.into())
+    //            }
+    //        }
+    //
+    //        impl<'a> aoc_runner::Generator<'a> for crate::__aoc::Day1Part2Generator {
+    //            type Output = Vec<i32>;
+    //
+    //            fn generate(&self, input: &'a str) -> Result<Self::Output, Box<dyn Error>> {
+    //                parse_input_day1(input).map_err(|err| err.into())
+    //            }
+    //        }
+    //    }
 
     fn parse_input_day1_unwrap(input: &str) -> Vec<i32> {
         input.lines().map(|l| l.parse().unwrap()).collect()
@@ -158,10 +158,10 @@ pub mod day1 {
     pub mod __part1_aoc_runner {
         use super::part1;
         use crate::__aoc::Day1Part1Runner;
-        use aoc_runner::RunnerV2;
+        use aoc_runner::Runner;
         use std::error::Error;
 
-        impl<'a> RunnerV2<'a, &'a [i32]> for Day1Part1Runner<&'a [i32]> {
+        impl<'a> Runner<'a, &'a [i32]> for Day1Part1Runner<&'a [i32]> {
             type Output = i32;
 
             fn run(&self, input: &'a [i32]) -> Result<Self::Output, Box<dyn Error>> {
@@ -192,10 +192,10 @@ pub mod day1 {
     pub mod __part2_aoc_runner {
         use super::part2;
         use crate::__aoc::Day1Part2Runner;
-        use aoc_runner::RunnerV2;
+        use aoc_runner::Runner;
         use std::error::Error;
 
-        impl<'a> RunnerV2<'a, &'a [i32]> for Day1Part2Runner<&'a [i32]> {
+        impl<'a> Runner<'a, &'a [i32]> for Day1Part2Runner<&'a [i32]> {
             type Output = i32;
 
             fn run(&self, input: &'a [i32]) -> Result<Self::Output, Box<dyn Error>> {

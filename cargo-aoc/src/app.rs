@@ -320,12 +320,7 @@ impl AOCApp {
                                     .replace(
                                         "{RUNNER_NAME}",
                                         &if let Some(n) = &dp.name {
-                                            format!(
-                                                "{}_{}_{}",
-                                                dp.day,
-                                                dp.part,
-                                                n.to_lowercase()
-                                            )
+                                            format!("{}_{}_{}", dp.day, dp.part, n.to_lowercase())
                                         } else {
                                             format!("{}_{}", dp.day, dp.part)
                                         },
