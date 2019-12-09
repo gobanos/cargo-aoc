@@ -128,7 +128,7 @@ fn body(lib: Option<pm2::Ident>) -> pm2::TokenStream {
                     dp.day.as_u8(), dp.part.as_u8(), n
                 ),
                 format!(
-                    "Day {} - Part {} - {}: FAILED while {{}}:\n{{:#?}}\n",
+                    "Day {} - Part {} - {}: FAILED while {{}}:\n{{:?}}\n",
                     dp.day.as_u8(), dp.part.as_u8(), n
                 )
             )
@@ -139,7 +139,7 @@ fn body(lib: Option<pm2::Ident>) -> pm2::TokenStream {
                     dp.day.as_u8(), dp.part.as_u8()
                 ),
                 format! (
-                    "Day {} - Part {}: FAILED while {{}}:\n{{:#?}}\n",
+                    "Day {} - Part {}: FAILED while {{}}:\n{{:?}}\n",
                     dp.day.as_u8(), dp.part.as_u8()
                 )
             )

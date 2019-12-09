@@ -14,8 +14,8 @@ Implement your solution. Let us do the rest.
 * Create a lib project `cargo new advent-of-code-2018 --lib`
 * Add deps to your Cargo.toml: 
 ```
-aoc-runner = "0.1.0"
-aoc-runner-derive = "0.1.0"
+aoc-runner = "0.2.0"
+aoc-runner-derive = "0.2.0"
 ```
 * Include libs in your lib.rs
 ```
