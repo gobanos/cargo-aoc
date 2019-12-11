@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
+use directories::ProjectDirs;
 
 pub struct CredentialsManager {
     session_token: Option<String>,
@@ -8,6 +9,16 @@ pub struct CredentialsManager {
 impl CredentialsManager {
     /// Gets a reference to the local credentials.toml file
     fn get_credentials_file() -> PathBuf {
+        let mut path_buf = ProjectDirs::from("com.github", "gobanos", "cargo-aoc")
+            .map(|dirs| dirs.config_dir().to_path_buf())
+            .expect("Home directory path could not be retrieved from the operating system");
+        fs::create_dir_all(path_buf.as_path()).expect("Config directory could not be created");
+        path_buf.push("credentials.toml");
+        path_buf
+    }
+
+    /// Gets a reference to the old local credentials.toml file
+    fn get_old_credentials_file() -> PathBuf {
         let mut path_buf = std::env::current_exe().expect("Could not find current path");
         path_buf.set_file_name("credentials.toml");
         path_buf
@@ -17,6 +28,16 @@ impl CredentialsManager {
     pub fn new() -> Self {
         // Gets a reference to the local credentials.toml file
         let path_buf = CredentialsManager::get_credentials_file();
+        
+        // If that doesn't exist yet, check the legacy path
+        if !path_buf.exists() {
+            let old_path_buf = CredentialsManager::get_old_credentials_file();
+            if old_path_buf.exists() {
+                // copy and delete, in case that they are on different file systems
+                fs::copy(old_path_buf.as_path(), path_buf.as_path()).expect("Couldn't copy credentials to new location");
+                fs::remove_file(old_path_buf.as_path()).expect("Couldn't delete old credentials file");
+            }
+        }
 
         // Reads it
         let token: Option<String> = match fs::read_to_string(path_buf) {
