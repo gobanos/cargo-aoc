@@ -1,15 +1,16 @@
 [package]
 name = "cargo-aoc"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Grégory Obanos <gregory.obanos@gmail.com>", "Olivier Pinon <oliv.pinon@gmail.com>"]
 description = "Cargo Advent of Code Helper"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/gobanos/cargo-aoc"
-readme = "README.md"
-include = ["Cargo.toml", "src/**/*", "template/**/*.tpl", "README.md"]
+readme = "../README.md"
+include = ["Cargo.toml", "src/**/*", "template/**/*.tpl", "../README.md"]
 
 [dependencies]
-aoc-runner-internal = { path = "../aoc-runner-internal" }
+#aoc-runner-internal = { path = "../aoc-runner-internal" }
+aoc-runner-internal = "0.1.0"
 toml = "0.5.3"
 clap = "2.33.0"
 chrono = "0.4.9"

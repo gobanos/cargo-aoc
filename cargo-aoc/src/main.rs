@@ -8,6 +8,7 @@ extern crate clap;
 extern crate reqwest;
 extern crate toml;
 extern crate webbrowser;
+extern crate directories;
 
 mod app;
 mod credentials;
