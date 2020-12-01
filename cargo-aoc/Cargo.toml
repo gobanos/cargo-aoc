@@ -15,6 +15,6 @@ toml = "0.5.3"
 clap = "2.33.0"
 chrono = "0.4.9"
 chrono-tz = "0.5.1"
-reqwest = "0.9.21"
+reqwest = { version = "0.9.21", default-features = false, features = ["rustls-tls"] }
 webbrowser = "0.5.2"
 directories = "2.0.2"
