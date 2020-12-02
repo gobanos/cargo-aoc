@@ -47,15 +47,15 @@ impl FromStr for Day {
 
     fn from_str(val: &str) -> Result<Self, Self::Err> {
         Ok(match val {
-            "Day1" | "day1" | "D1" | "d1" => Day::Day1,
-            "Day2" | "day2" | "D2" | "d2" => Day::Day2,
-            "Day3" | "day3" | "D3" | "d3" => Day::Day3,
-            "Day4" | "day4" | "D4" | "d4" => Day::Day4,
-            "Day5" | "day5" | "D5" | "d5" => Day::Day5,
-            "Day6" | "day6" | "D6" | "d6" => Day::Day6,
-            "Day7" | "day7" | "D7" | "d7" => Day::Day7,
-            "Day8" | "day8" | "D8" | "d8" => Day::Day8,
-            "Day9" | "day9" | "D9" | "d9" => Day::Day9,
+            "Day01" | "day01" | "Day1" | "day1" | "D1" | "d1" => Day::Day1,
+            "Day02" | "day02" | "Day2" | "day2" | "D2" | "d2" => Day::Day2,
+            "Day03" | "day03" | "Day3" | "day3" | "D3" | "d3" => Day::Day3,
+            "Day04" | "day04" | "Day4" | "day4" | "D4" | "d4" => Day::Day4,
+            "Day05" | "day05" | "Day5" | "day5" | "D5" | "d5" => Day::Day5,
+            "Day06" | "day06" | "Day6" | "day6" | "D6" | "d6" => Day::Day6,
+            "Day07" | "day07" | "Day7" | "day7" | "D7" | "d7" => Day::Day7,
+            "Day08" | "day08" | "Day8" | "day8" | "D8" | "d8" => Day::Day8,
+            "Day09" | "day09" | "Day9" | "day9" | "D9" | "d9" => Day::Day9,
             "Day10" | "day10" | "D10" | "d10" => Day::Day10,
             "Day11" | "day11" | "D11" | "d11" => Day::Day11,
             "Day12" | "day12" | "D12" | "d12" => Day::Day12,
@@ -216,10 +216,10 @@ pub enum Alternative {
     Alt2,
     Alt3,
     Alt4,
-//    Alt5,
-//    Alt6,
-//    Alt7,
-//    Alt8,
+    //    Alt5,
+    //    Alt6,
+    //    Alt7,
+    //    Alt8,
 }
 
 impl Alternative {
@@ -257,10 +257,10 @@ impl TryFrom<u8> for Alternative {
             2 => Alternative::Alt2,
             3 => Alternative::Alt3,
             4 => Alternative::Alt4,
-//            5 => Alternative::Alt5,
-//            6 => Alternative::Alt6,
-//            7 => Alternative::Alt7,
-//            8 => Alternative::Alt8,
+            //            5 => Alternative::Alt5,
+            //            6 => Alternative::Alt6,
+            //            7 => Alternative::Alt7,
+            //            8 => Alternative::Alt8,
             _ => return Err("Alternative must be in range 0..=8"),
         })
     }
@@ -274,10 +274,10 @@ impl Into<u8> for Alternative {
             Alternative::Alt2 => 2,
             Alternative::Alt3 => 3,
             Alternative::Alt4 => 4,
-//            Alternative::Alt5 => 5,
-//            Alternative::Alt6 => 6,
-//            Alternative::Alt7 => 7,
-//            Alternative::Alt8 => 8,
+            //            Alternative::Alt5 => 5,
+            //            Alternative::Alt6 => 6,
+            //            Alternative::Alt7 => 7,
+            //            Alternative::Alt8 => 8,
         }
     }
 }
