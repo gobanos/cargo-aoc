@@ -135,7 +135,7 @@ impl AOCApp {
         Ok(())
     }
 
-    pub fn execute_default(&self, args: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
+    fn generate_subproject(&self, args: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
         let day: Option<Day> = args
             .value_of("day")
             .map(|d| d.parse().expect("Failed to parse day"));
@@ -221,8 +221,12 @@ impl AOCApp {
         fs::write("target/aoc/aoc-autobuild/src/main.rs", &main_content)
             .expect("failed to write src/main.rs");
 
+        Ok(())
+    }
+
+    fn cargo_exec(args: &[&str]) {
         let status = process::Command::new("cargo")
-            .args(&["run", "--release"])
+            .args(args)
             .current_dir("target/aoc/aoc-autobuild")
             .spawn()
             .expect("Failed to run cargo")
@@ -232,6 +236,18 @@ impl AOCApp {
         if !status.success() {
             process::exit(status.code().unwrap_or(-1));
         }
+    }
+
+    pub fn execute_build(&self, args: &ArgMatches) -> Result<(), Box<dyn error::Error>>  {
+        self.generate_subproject(args)?;
+        Self::cargo_exec(&["build"]);
+
+        Ok(())
+    }
+
+    pub fn execute_default(&self, args: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
+        self.generate_subproject(args)?;
+        Self::cargo_exec(&["run", "--release"]);
 
         Ok(())
     }
