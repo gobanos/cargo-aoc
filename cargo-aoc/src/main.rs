@@ -112,6 +112,28 @@ fn main() {
                         .takes_value(true),
                 ),
         )
+        .subcommand(
+            SubCommand::with_name("build")
+                .about("Builds the subproject for debugging purposes")
+                .arg(
+                    Arg::with_name("day")
+                        .short("d")
+                        .help("Specifies the day. Defaults to today's date.")
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("year")
+                        .short("y")
+                        .help("Specifies the year. Defaults to the current year.")
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("input")
+                        .short("i")
+                        .help("Use an alternate input file.")
+                        .takes_value(true),
+                )
+        )
         .get_matches();
 
     // Creates an AOCApp that we'll use to launch actions (commands)
@@ -122,14 +144,20 @@ fn main() {
         ("input", Some(m)) => app.execute_input(&m),
         ("bench", Some(m)) => {
             if let Err(e) = app.execute_bench(&m) {
-                eprintln!("An error occurs : {}", e.description());
+                eprintln!("An error occurs : {}", e);
+                std::process::exit(-1);
+            }
+        }
+        ("build", Some(m)) => {
+            if let Err(e) = app.execute_build(&m) {
+                eprintln!("An error occurs : {}", e);
                 std::process::exit(-1);
             }
         }
         (c, Some(_)) => panic!("Unknown command `{}`", c),
         _ => {
             if let Err(e) = app.execute_default(&matches) {
-                eprintln!("An error occurs : {}", e.description());
+                eprintln!("An error occurs : {}", e);
                 std::process::exit(-1);
             }
         }
