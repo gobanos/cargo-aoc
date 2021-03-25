@@ -1,8 +1,8 @@
-use serde::export::fmt::Error;
-use serde::export::Formatter;
 use std::cmp::Ordering;
 use std::convert::TryFrom;
 use std::fmt::Display;
+use std::fmt::Error;
+use std::fmt::Formatter;
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
