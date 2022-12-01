@@ -4,7 +4,7 @@ use crate::project::ProjectManager;
 use aoc_runner_internal::Day;
 use aoc_runner_internal::Part;
 use clap::ArgMatches;
-use reqwest::header::COOKIE;
+use reqwest::header::{COOKIE, USER_AGENT};
 use reqwest::Client;
 use reqwest::StatusCode;
 use std::error;
@@ -13,6 +13,8 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::process;
+
+const CARGO_AOC_USER_AGENT: &'static str = "github.com/gobanos/cargo-aoc";
 
 pub struct AOCApp {}
 
@@ -63,6 +65,7 @@ impl AOCApp {
         let res = client
             .get(&date.request_url())
             .header(COOKIE, formated_token)
+            .header(USER_AGENT, CARGO_AOC_USER_AGENT)
             .send();
 
         // Depending on the StatusCode of the request, we'll write errors or try to write
@@ -73,7 +76,7 @@ impl AOCApp {
                     let filename = date.filename();
                     let dir = date.directory();
                     // Creates the file-tree to store inputs
-                    // TODO: Maybe use crate's infos to get its root in the filesystem ? 
+                    // TODO: Maybe use crate's infos to get its root in the filesystem ?
                     fs::create_dir_all(&dir).unwrap_or_else(|_| panic!("Could not create input directory: {}", dir));
 
                     // Gets the body from the response and outputs everything to a file
@@ -111,6 +114,7 @@ impl AOCApp {
         let mut response = client
             .get(&date.request_url())
             .header(COOKIE, formated_token)
+            .header(USER_AGENT, CARGO_AOC_USER_AGENT)
             .send()?;
 
         match response.status() {
