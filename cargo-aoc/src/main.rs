@@ -122,14 +122,14 @@ fn main() {
         ("input", Some(m)) => app.execute_input(&m),
         ("bench", Some(m)) => {
             if let Err(e) = app.execute_bench(&m) {
-                eprintln!("An error occurs : {}", e.description());
+                eprintln!("An error occurs : {}", e);
                 std::process::exit(-1);
             }
         }
         (c, Some(_)) => panic!("Unknown command `{}`", c),
         _ => {
             if let Err(e) = app.execute_default(&matches) {
-                eprintln!("An error occurs : {}", e.description());
+                eprintln!("An error occurs : {}", e);
                 std::process::exit(-1);
             }
         }

@@ -4,8 +4,8 @@ use clap::ArgMatches;
 use credentials::CredentialsManager;
 use date::AOCDate;
 use project::ProjectManager;
-use reqwest::header::COOKIE;
-use reqwest::Client;
+use reqwest::header::{COOKIE, USER_AGENT};
+use reqwest::blocking::Client;
 use reqwest::StatusCode;
 use std::error;
 use std::fs;
@@ -13,6 +13,8 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::process;
+
+const CARGO_AOC_USER_AGENT: &str = "github.com/gobanos/cargo-aoc by gregory.obanos@gmail.com";
 
 pub struct AOCApp {}
 
@@ -62,13 +64,14 @@ impl AOCApp {
         // Sends the query to the right URL, with the user token
         let res = client
             .get(&date.request_url())
+            .header(USER_AGENT, CARGO_AOC_USER_AGENT)
             .header(COOKIE, formated_token)
             .send();
 
         // Depending on the StatusCode of the request, we'll write errors or try to write
         // the result of the HTTP Request to a file
         match res {
-            Ok(mut response) => match response.status() {
+            Ok(response) => match response.status() {
                 StatusCode::OK => {
                     let filename = date.filename();
                     let dir = date.directory();
@@ -109,8 +112,9 @@ impl AOCApp {
         // Cookie formatting ...
         let formated_token = format!("session={}", token);
 
-        let mut response = client
+        let response = client
             .get(&date.request_url())
+            .header(USER_AGENT, CARGO_AOC_USER_AGENT)
             .header(COOKIE, formated_token)
             .send()?;
 
