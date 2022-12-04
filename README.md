@@ -62,7 +62,7 @@ From the puzzle's description, we know that `[we] have a list of the dimensions 
 
 We might want to first parse the input and extract logical `Gift` structs out of it, like: 
 
-```
+```rs
 pub struct Gift {
     l: u32,
     w: u32,
@@ -75,7 +75,7 @@ In @Gobanos' reference implementation, we can see that he instead chose to settl
 
 Thus, writing a generator for `Gift`s is fairly simple: 
 
-```
+```rs
 #[aoc_generator(day2)]
 pub fn input_generator(input: &str) -> Vec<Gift> {
     input
@@ -104,7 +104,7 @@ Optionally, you can have multiple implementation for the same part of a day. You
 
 Following with the previous example, implementing a solver for the part one could be done like this :
 
-```
+```rs
 #[aoc(day2, part1)]
 pub fn solve_part1(input: &[Gift]) -> u32 {
     input
@@ -135,7 +135,7 @@ Please note that by default, we're taking today's date as the argument. Of cours
 `cargo aoc` will run the latest implemented day, downloading your input beforehand. It will show you the result, and a short summary of how well it did perform.
 
 Example output on my Chromebook, running [@Gobanos' AOC2015](https://github.com/gobanos/advent-of-code-2015) : 
-```
+```sh
 [olivier@olivier-pc advent-of-code-2015]$ cargo aoc
     Finished dev [unoptimized + debuginfo] target(s) in 0.12s
    Compiling aoc-autobuild v0.1.0 (/home/olivier/Workspace/Rust/advent-of-code-2015/target/aoc/aoc-autobuild)
