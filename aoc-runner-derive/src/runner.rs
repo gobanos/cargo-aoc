@@ -63,7 +63,7 @@ pub fn runner_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::TokenSt
     let out_t = if let ReturnType::Type(_, p) = input.sig.output {
         p
     } else {
-        panic!()
+        panic!("runners must return a value")
     };
 
     let (special_type, out_t) = if let Some((ty, inner)) = extract_result(&*out_t) {
