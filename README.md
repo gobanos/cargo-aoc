@@ -40,7 +40,7 @@ In order for `cargo-aoc` to work properly, you have to set the project up correc
 
 If you get lost during the process, you can take [this example repository of AoC 2015](https://github.com/gobanos/advent-of-code-2015) as a template.
 
-First, you must add a dependency on `aoc-runner` and `aoc-runner-derive` in your `Cargo.toml`.
+First, you must add a dependency on `aoc-runner` and `aoc-runner-derive` in your `Cargo.toml`. NOTE: You must match the version numbers of these dependencies with the version of `cargo-aoc` that you are using.
 At the end of the `src/lib.rs`, you will have to use the macro `aoc_lib!{ year = XXXX }`, where XXXX is the
 year of the AoC puzzles being solved.
 
