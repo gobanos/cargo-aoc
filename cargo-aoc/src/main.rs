@@ -94,6 +94,10 @@ pub struct Input {
     /// Downloads all possible inputs for a given year
     #[clap(short, long)]
     all: bool,
+
+    /// Generate the boilerplate for the given day.
+    #[clap(long,short)]
+    generate: bool,
 }
 
 fn main() {
