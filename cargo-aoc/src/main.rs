@@ -16,16 +16,18 @@ use clap::Parser;
     about = "Cargo helper for Advent of Code"
 )]
 pub struct Cli {
-    #[clap(help = "Specifies the day. Defaults to last implemented.")]
+    /// Specifies the day. Defaults to last implemented.
+    #[clap()]
     day: Option<Day>,
 
-    #[clap(short, long, help = "Specifies the part. Defaults to both parts.")]
+    /// Specifies the part. Defaults to both parts.
+    #[clap(short, long)]
     part: Option<Part>,
-
-    #[clap(short, long, help = "Use an alternate input file.")]
+    /// Use an alternate input file.
+    #[clap(short, long)]
     input: Option<String>,
-
-    #[clap(short, long, help = "Add debug info for profiling tools.")]
+    /// Add debug info for profiling tools.
+    #[clap(long)]
     profile: bool,
 
     #[clap(subcommand)]
@@ -39,43 +41,49 @@ enum SubCommands {
     Input(Input),
 }
 
+/// Runs the benchmark for the last day (or a given day)
 #[derive(Parser, Debug)]
 pub struct Bench {
-    #[clap(short, long, help = "Specifies the day. Defaults to last implemented.")]
+    /// Specifies the day. Defaults to last implemented.
+    #[clap(short, long)]
     day: Option<Day>,
 
-    #[clap(short, long, help = "Specifies the part. Defaults to both parts.")]
+    /// Specifies the part. Defaults to both parts.
+    #[clap(short, long)]
     part: Option<Part>,
 
-    #[clap(short, long, help = "Use an alternate input file.")]
+    /// Use an alternate input file.
+    #[clap(short, long)]
     input: Option<String>,
 
-    #[clap(short, long, help = "Opens the benchmark information in the browser")]
+    /// Opens the benchmark information in the browser
+    #[clap(short, long)]
     open: bool,
 
-    #[clap(short, long, help = "Also benchmark generator functions.")]
+    /// Also benchmark generator functions.
+    #[clap(short, long)]
     generator: bool,
 
-    #[clap(short, long, help = "Add debug info for profiling tools.")]
+    /// Add debug info for profiling tools.
+    #[clap(long)]
     profile: bool,
 }
 
+/// Sets the session cookie
 #[derive(Parser, Debug)]
 pub struct Credentials {
-    #[clap(short, long, help = "Sets the session cookie")]
     set: Option<String>,
 }
 
+/// Downloads the input for today (or a given day)
 #[derive(Parser, Debug)]
 pub struct Input {
-    #[clap(short, long, help = "Specifies the day. Defaults to today's date.")]
+    /// Specifies the day. Defaults to today's date.
+    #[clap(short, long)]
     day: Option<u32>,
 
-    #[clap(
-        short,
-        long,
-        help = "Specifies the year. Defaults to the current year."
-    )]
+    /// Specifies the year. Defaults to the current year.
+    #[clap(short, long)]
     year: Option<i32>,
 }
 
