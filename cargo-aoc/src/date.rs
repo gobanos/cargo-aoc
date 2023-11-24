@@ -1,6 +1,7 @@
 use chrono::prelude::*;
 use chrono_tz::EST;
-use clap::ArgMatches;
+
+use crate::Input;
 
 pub struct AOCDate {
     /// The day of the input to retrieve
@@ -11,19 +12,15 @@ pub struct AOCDate {
 
 impl AOCDate {
     /// Creates a date struct for the given `ArgMatches`, defaulting to today's day and year
-    pub fn new(matches: &ArgMatches) -> Self {
+    pub fn new(matches: &Input) -> Self {
         // Get the current date in the EST timezone, which is used by advent of code to
         // release new puzzles.
         let utc_today = Utc::now().naive_utc();
         let today = EST.from_utc_datetime(&utc_today);
-        let day: u32 = matches
-            .value_of("day")
-            .map(|d| d.parse::<u32>().expect("Day not formatted correctly"))
+        let day: u32 = matches.day
             .unwrap_or_else(|| today.day());
 
-        let year: i32 = matches
-            .value_of("year")
-            .map(|d| d.parse::<i32>().expect("Year not formatted correctly"))
+        let year: i32 = matches.year
             .unwrap_or_else(|| today.year());
 
         AOCDate { day, year }
