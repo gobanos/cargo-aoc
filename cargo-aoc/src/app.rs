@@ -7,7 +7,7 @@ use reqwest::{
     header::{HeaderMap, COOKIE, USER_AGENT},
     StatusCode,
 };
-use std::fs::{self, File};
+use std::{fs::{self, File}, error::Error};
 use std::io::Write;
 use std::path::Path;
 use std::process;
@@ -36,7 +36,7 @@ pub fn execute_credentials(args: &Credentials) {
 }
 
 /// Executes the "input" subcommand of the app
-pub fn execute_input(args: &Input) {
+pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
     // Gets the token or exit if it's not referenced.
     let token = CredentialsManager::new().get_session_token().expect(
         "Error: you need to setup your AOC token using \"cargo aoc credentials -s {token}\"",
@@ -52,12 +52,12 @@ pub fn execute_input(args: &Input) {
             .year
             .expect("Need to specify a year to run cargo-aoc input --all");
         download_all_inputs(year, headers);
-        return;
+        return Ok(());
     }
 
     // Creates the AOCDate struct from the arguments (defaults to today...)
     let date: AOCDate = AOCDate::new(args);
-    download_input(date);
+    download_input(date)
 }
 
 // The client should have the appropriate headers set
@@ -92,7 +92,7 @@ async fn download_input_async(
         }
         StatusCode::NOT_FOUND => Err(format!("Day {} not yet ready", date.day))?,
         sc => Err(format!(
-                "Could not find corresponding input. Is the token correct?\n\
+            "Could not find corresponding input. Is the token correct?\n\
                 Status: {}\n\n\
                 Message: {}",
             sc,
@@ -129,7 +129,6 @@ fn download_all_inputs(year: i32, headers: HeaderMap) {
 }
 
 fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
-
     let filename = date.filename();
     let filename = Path::new(&filename);
 
@@ -229,7 +228,6 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
     if body.is_empty() {
         return Err("No matching day & part found".into());
     }
-
 
     let date = AOCDate {
         day: u32::from(day.0),
@@ -428,7 +426,7 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
     } else {
         String::new()
     };
-    
+
     let date = AOCDate {
         day: u32::from(day.0),
         year: year as i32,

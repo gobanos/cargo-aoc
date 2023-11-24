@@ -1,7 +1,7 @@
+mod project;
 mod app;
 mod credentials;
 mod date;
-mod project;
 
 use aoc_runner_internal::{Day, Part};
 use app::{execute_bench, execute_credentials, execute_default, execute_input};
@@ -102,7 +102,8 @@ fn main() {
     match subcommand {
         SubCommands::Bench(arg) => execute_bench(&arg),
         SubCommands::Credentials(arg) => Ok(execute_credentials(&arg)),
-        SubCommands::Input(arg) => Ok(execute_input(&arg)),
+        SubCommands::Input(arg) => execute_input(&arg),
     }
     .unwrap()
 }
+
