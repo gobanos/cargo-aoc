@@ -4,12 +4,17 @@ mod date;
 mod project;
 
 use aoc_runner_internal::{Day, Part};
-use app::{execute_default, execute_bench, execute_credentials, execute_input};
+use app::{execute_bench, execute_credentials, execute_default, execute_input};
 
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-#[clap(name = "cargo-aoc", version = "0.3.0", author = "gobanos <gregory.obanos@gmail.com>", about = "Cargo helper for Advent of Code")]
+#[clap(
+    name = "cargo-aoc",
+    version = "0.3.0",
+    author = "gobanos <gregory.obanos@gmail.com>",
+    about = "Cargo helper for Advent of Code"
+)]
 pub struct Cli {
     #[clap(help = "Specifies the day. Defaults to last implemented.")]
     day: Option<Day>,
@@ -66,21 +71,25 @@ pub struct Input {
     #[clap(short, long, help = "Specifies the day. Defaults to today's date.")]
     day: Option<u32>,
 
-    #[clap(short, long, help = "Specifies the year. Defaults to the current year.")]
+    #[clap(
+        short,
+        long,
+        help = "Specifies the year. Defaults to the current year."
+    )]
     year: Option<i32>,
 }
 
 fn main() {
     let cli = Cli::parse();
-    
+
     let Some(subcommand) = cli.subcmd else {
         return execute_default(&cli).unwrap();
     };
 
-    let err = match subcommand {
+    match subcommand {
         SubCommands::Bench(arg) => execute_bench(&arg),
         SubCommands::Credentials(arg) => Ok(execute_credentials(&arg)),
         SubCommands::Input(arg) => Ok(execute_input(&arg)),
-    };
-    err.unwrap()
+    }
+    .unwrap()
 }
