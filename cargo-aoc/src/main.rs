@@ -30,6 +30,10 @@ pub struct Cli {
     #[clap(long)]
     profile: bool,
 
+    /// Generate the boilerplate for the given day.
+    #[clap(long,short)]
+    generate: bool,
+
     #[clap(subcommand)]
     subcmd: Option<SubCommands>,
 }
