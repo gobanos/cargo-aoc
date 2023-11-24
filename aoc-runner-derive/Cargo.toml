@@ -10,9 +10,9 @@ repository = "https://github.com/gobanos/aoc-runner-derive"
 proc-macro = true
 
 [dependencies]
-syn = { version = "1.0.5", features = ["extra-traits"] }
-quote = "1.0.2"
-proc-macro2 = "1.0.5"
+syn = { version = "1.0.109", features = ["extra-traits"] }
+quote = "1.0.33"
+proc-macro2 = "1.0.69"
 #aoc-runner-internal = { path = "../aoc-runner-internal" }
 aoc-runner-internal = "0.1.0"
 

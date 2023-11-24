@@ -85,6 +85,11 @@ pub struct Input {
     /// Specifies the year. Defaults to the current year.
     #[clap(short, long)]
     year: Option<i32>,
+
+    
+    /// Downloads all possible inputs for a given year
+    #[clap(short, long)]
+    all: bool,
 }
 
 fn main() {
