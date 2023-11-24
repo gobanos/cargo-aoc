@@ -80,7 +80,7 @@ pub struct Credentials {
 pub struct Input {
     /// Specifies the day. Defaults to today's date.
     #[clap(short, long)]
-    day: Option<u32>,
+    day: Option<Day>,
 
     /// Specifies the year. Defaults to the current year.
     #[clap(short, long)]

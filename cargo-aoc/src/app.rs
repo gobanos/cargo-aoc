@@ -12,7 +12,6 @@ use std::io::Write;
 use std::path::Path;
 use std::process;
 use std::{error, sync::Arc};
-use tokio::task::JoinSet;
 
 use crate::Cli;
 
@@ -58,40 +57,7 @@ pub fn execute_input(args: &Input) {
 
     // Creates the AOCDate struct from the arguments (defaults to today...)
     let date: AOCDate = AOCDate::new(args);
-    println!(
-        "Requesting input for year {}, day {} ...",
-        date.year, date.day
-    );
-
-    // Creates an HTTP Client
-    let client = reqwest::blocking::Client::new();
-    // Cookie formatting ...
-    // Sends the query to the right URL, with the user token
-    let res = client.get(&date.request_url()).headers(headers).send();
-
-    // Depending on the StatusCode of the request, we'll write errors or try to write
-    // the result of the HTTP Request to a file
-    match res {
-            Ok(response) => match response.status() {
-                StatusCode::OK => {
-                    let filename = date.filename();
-                    let dir = date.directory();
-                    // Creates the file-tree to store inputs
-                    // TODO: Maybe use crate's infos to get its root in the filesystem ? 
-                    fs::create_dir_all(&dir).unwrap_or_else(|_| panic!("Could not create input directory: {}", dir));
-
-                    // Gets the body from the response and outputs everything to a file
-                    let body = response.text().expect("Could not read content from input");
-                    let mut file = File::create(&filename).unwrap_or_else(|_| panic!("Could not create file {}", filename));
-                    file.write_all(body.as_bytes()).unwrap_or_else(|_| panic!("Could not write to {}", filename));
-                }
-                sc => println!(
-                    "Could not find corresponding input. Are the day, year, and token correctly set ? Status: {}\
-                    Message: {}", sc, response.text().unwrap_or_else(|_| String::new())
-                ),
-            },
-            Err(e) => println!("Failed to get a response: {}", e),
-        }
+    download_input(date);
 }
 
 // The client should have the appropriate headers set
@@ -162,11 +128,7 @@ fn download_all_inputs(year: i32, headers: HeaderMap) {
     return;
 }
 
-fn download_input(day: Day, year: u32) -> Result<(), Box<dyn error::Error>> {
-    let date = AOCDate {
-        day: u32::from(day.0),
-        year: year as i32,
-    };
+fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
 
     let filename = date.filename();
     let filename = Path::new(&filename);
@@ -268,7 +230,12 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
         return Err("No matching day & part found".into());
     }
 
-    download_input(day, year)?;
+
+    let date = AOCDate {
+        day: u32::from(day.0),
+        year: year as i32,
+    };
+    download_input(date)?;
 
     let main_content = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -461,8 +428,12 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
     } else {
         String::new()
     };
-
-    download_input(day, year)?;
+    
+    let date = AOCDate {
+        day: u32::from(day.0),
+        year: year as i32,
+    };
+    download_input(date)?;
 
     let main_content = bench_tpl
         .replace("{CRATE_SLUG}", &pm.slug)
