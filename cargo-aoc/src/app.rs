@@ -122,7 +122,6 @@ fn update_lib_rs(day: u32) -> Result<(), Box<dyn Error>> {
     let str = format!("mod day{day};");
     if !lib_rs.contains(&str) {
         let lib_rs = format!("{str}\n{lib_rs}");
-        dbg!(&lib_rs);
         std::fs::write(lib_rs_path, lib_rs)?;
     } else {
         eprintln!("lib.rs already contains {str}. Skipping...");
@@ -138,16 +137,20 @@ fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
     let code = r#"use aoc_runner_derive::{aoc, aoc_generator};
-type InputType = ();
-type OutputType = ();
 #[aoc_generator(REP)]
-fn parse(input: &str) -> InputType {}
+fn parse(input: &str) -> String {
+    todo!()
+}
 
 #[aoc(REP, part1)]
-fn part1(input: InputType) -> OutputType {}
+fn part1(input: &str) -> String {
+    todo!()
+}
 
 #[aoc(REP, part2)]
-fn part2(input: InputType) -> OutputType {}
+fn part2(input: &str) -> String {
+    todo!()
+}
 
 
 #[cfg(test)]
