@@ -9,7 +9,7 @@ use reqwest::{
 };
 use std::path::Path;
 use std::process;
-use std::{cell::RefCell, io::Write, sync::OnceLock};
+use std::{io::Write};
 use std::{error, sync::Arc};
 use std::{
     error::Error,
@@ -79,7 +79,7 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
                                 Err(e) => eprintln!("{e}"),
                             }
                         }
-                        return day;
+                        day
                     }));
                 }
                 let mut results = Vec::new();
