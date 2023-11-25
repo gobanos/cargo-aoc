@@ -19,7 +19,7 @@ impl FromStr for Day {
 
     fn from_str(day: &str) -> Result<Self, Self::Err> {
         let slice = if day.len() < 4 || &day[..3] != "day" {
-            &day[..]
+            day
         } else {
             &day[3..]
         };
@@ -71,7 +71,7 @@ impl DayPart {
 
 impl PartialOrd for DayPart {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 

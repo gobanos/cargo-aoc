@@ -108,7 +108,10 @@ fn main() {
 
     match subcommand {
         SubCommands::Bench(arg) => execute_bench(&arg),
-        SubCommands::Credentials(arg) => Ok(execute_credentials(&arg)),
+        SubCommands::Credentials(arg) => {
+            execute_credentials(&arg);
+            Ok(())
+        },
         SubCommands::Input(arg) => execute_input(&arg),
     }
     .unwrap()

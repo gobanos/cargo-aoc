@@ -65,8 +65,8 @@ fn headers(map: &InnerMap, year: u32) -> pm2::TokenStream {
     let traits_impl: pm2::TokenStream = map
         .keys()
         .map(|dp| {
-            let snake = to_snakecase(&dp);
-            let camel = to_camelcase(&dp);
+            let snake = to_snakecase(dp);
+            let camel = to_camelcase(dp);
 
             quote! {
                 #[doc(hidden)]
@@ -220,7 +220,7 @@ fn read_infos() -> Result<DayParts, Box<dyn error::Error>> {
 fn parse_lib_infos(infos: pm::TokenStream) -> Result<LibInfos, ()> {
     let tokens: Vec<_> = infos.into_iter().collect();
 
-    if let pm::TokenTree::Ident(i) = tokens.get(0).ok_or(())? {
+    if let pm::TokenTree::Ident(i) = tokens.first().ok_or(())? {
         if i.to_string() != "year" {
             return Err(());
         }
@@ -258,7 +258,7 @@ fn parse_main_infos(infos: pm::TokenStream) -> Result<MainInfos, ()> {
         return Err(());
     }
 
-    if let pm::TokenTree::Ident(i) = tokens.get(0).ok_or(())? {
+    if let pm::TokenTree::Ident(i) = tokens.first().ok_or(())? {
         let ty = i.to_string();
 
         Ok(match ty.as_ref() {

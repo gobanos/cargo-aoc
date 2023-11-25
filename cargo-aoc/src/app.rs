@@ -69,7 +69,7 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
                     let client = client.clone();
                     tasks.push(tokio::spawn(async move {
                         let date = AOCDate { day, year };
-                        match download_input_async(date, &*client).await {
+                        match download_input_async(date, &client).await {
                             Ok(_) => println!("Successfully downloaded day {day}"),
                             Err(e) => return eprintln!("{e}"),
                         };
@@ -78,7 +78,7 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
                         }
                         match codegen(day) {
                             Ok(_) => println!("Successfully generated boilerplate for {day}"),
-                            Err(e) => return eprintln!("{e}"),
+                            Err(e) => eprintln!("{e}"),
                         }
                     }));
                 }
@@ -179,7 +179,7 @@ async fn download_input_async(
                 .text()
                 .await
                 .map_err(|e| format!("Can't convert response to text: {e:?}"))?;
-            let mut file = File::create(&filename)?;
+            let mut file = File::create(filename)?;
             file.write_all(body.as_bytes())?;
             Ok(())
         }
@@ -209,7 +209,7 @@ fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
     let formated_token = format!("session={}", token);
 
     let response = client
-        .get(&date.request_url())
+        .get(date.request_url())
         .header(USER_AGENT, CARGO_AOC_USER_AGENT)
         .header(COOKIE, formated_token)
         .send()?;
@@ -219,11 +219,11 @@ fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
                 let dir = date.directory();
                 // Creates the file-tree to store inputs
                 // TODO: Maybe use crate's infos to get its root in the filesystem ?
-                fs::create_dir_all(&dir)?;
+                fs::create_dir_all(dir)?;
 
                 // Gets the body from the response and outputs everything to a file
                 let body = response.text()?;
-                let mut file = File::create(&filename)?;
+                let mut file = File::create(filename)?;
                 file.write_all(body.as_bytes())?;
             }
             sc => return Err(format!(
@@ -312,13 +312,13 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
 
     fs::create_dir_all("target/aoc/aoc-autobuild/src")
         .expect("failed to create autobuild directory");
-    fs::write("target/aoc/aoc-autobuild/Cargo.toml", &cargo_content)
+    fs::write("target/aoc/aoc-autobuild/Cargo.toml", cargo_content)
         .expect("failed to write Cargo.toml");
-    fs::write("target/aoc/aoc-autobuild/src/main.rs", &main_content)
+    fs::write("target/aoc/aoc-autobuild/src/main.rs", main_content)
         .expect("failed to write src/main.rs");
 
     let status = process::Command::new("cargo")
-        .args(&["run", "--release"])
+        .args(["run", "--release"])
         .current_dir("target/aoc/aoc-autobuild")
         .spawn()
         .expect("Failed to run cargo")
@@ -431,7 +431,7 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
                                 .replace(
                                     "{NAME}",
                                     if let Some(n) = &dp.name {
-                                        &n
+                                        n
                                     } else {
                                         "(default)"
                                     },
@@ -483,7 +483,7 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
                                     .replace(
                                         "{NAME}",
                                         if let Some(n) = &dp.name {
-                                            &n
+                                            n
                                         } else {
                                             "(default)"
                                         },
@@ -523,16 +523,16 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
 
     fs::create_dir_all("target/aoc/aoc-autobench/benches")
         .expect("failed to create autobench directory");
-    fs::write("target/aoc/aoc-autobench/Cargo.toml", &cargo_content)
+    fs::write("target/aoc/aoc-autobench/Cargo.toml", cargo_content)
         .expect("failed to write Cargo.toml");
     fs::write(
         "target/aoc/aoc-autobench/benches/aoc_benchmark.rs",
-        &main_content,
+        main_content,
     )
     .expect("failed to write src/aoc_benchmark.rs");
 
     let status = process::Command::new("cargo")
-        .args(&["bench"])
+        .args(["bench"])
         .current_dir("target/aoc/aoc-autobench")
         .spawn()
         .expect("Failed to run cargo")
