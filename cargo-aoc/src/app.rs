@@ -50,18 +50,54 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
     headers.insert(USER_AGENT, CARGO_AOC_USER_AGENT.parse().unwrap());
     headers.insert(COOKIE, formated_token.parse().unwrap());
 
+    let generate = args.generate;
     if args.all {
         let year = args
             .year
             .expect("Need to specify a year to run cargo-aoc input --all");
-        download_all_inputs(year, headers);
+        {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(async {
+                let client = reqwest::Client::builder()
+                    .default_headers(headers)
+                    .build()
+                    .unwrap();
+                let client = Arc::new(client);
+
+                let mut tasks = Vec::new();
+                for day in 1..26u32 {
+                    let client = client.clone();
+                    tasks.push(tokio::spawn(async move {
+                        let date = AOCDate { day, year };
+                        match download_input_async(date, &*client).await {
+                            Ok(_) => println!("Successfully downloaded day {day}"),
+                            Err(e) => return eprintln!("{e}"),
+                        };
+                        if !generate {
+                            return;
+                        }
+                        match codegen(day) {
+                            Ok(_) => println!("Successfully downloaded day {day}"),
+                            Err(e) => return eprintln!("{e}"),
+                        }
+                    }));
+                }
+                for task in tasks {
+                    let _ = task.await;
+                }
+            });
+        };
         return Ok(());
     }
 
     // Creates the AOCDate struct from the arguments (defaults to today...)
     let date: AOCDate = AOCDate::new(args);
     download_input(date)?;
-    Ok(())
+
+    if generate {
+        return Ok(());
+    }
+    codegen(date.day)
 }
 
 fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
@@ -156,32 +192,6 @@ async fn download_input_async(
     }
 }
 
-fn download_all_inputs(year: i32, headers: HeaderMap) {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(async {
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()
-            .unwrap();
-        let client = Arc::new(client);
-
-        let mut tasks = Vec::new();
-        for day in 1..26u32 {
-            let client = client.clone();
-            tasks.push(tokio::spawn(async move {
-                let date = AOCDate { day, year };
-                match download_input_async(date, &*client).await {
-                    Ok(_) => println!("Successfully downloaded day {day}"),
-                    Err(e) => eprintln!("{e}"),
-                };
-            }));
-        }
-        for task in tasks {
-            let _ = task.await;
-        }
-    });
-    return;
-}
 
 fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
     let filename = date.filename();
@@ -318,7 +328,10 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
         process::exit(status.code().unwrap_or(-1));
     }
 
-    Ok(())
+    if !args.generate {
+        return Ok(());
+    }
+    codegen(date.day)
 }
 
 pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
