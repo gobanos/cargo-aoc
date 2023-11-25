@@ -110,9 +110,9 @@ fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
 
     let mut lib_rs = fs::read_to_string(lib_rs_path)?;
 
-    let str = format!("mod day{day}");
+    let str = format!("mod day{day}\n");
     if !lib_rs.contains(&str) {
-        lib_rs = format!("mod day{day}\n{lib_rs}");
+        lib_rs = format!("mod day{day}n{lib_rs}");
         std::fs::write(lib_rs_path, lib_rs)?;
     } else {
         eprintln!("lib.rs already contains {str}. Skipping...");
