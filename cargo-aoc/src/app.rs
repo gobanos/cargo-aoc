@@ -77,7 +77,7 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
                             return;
                         }
                         match codegen(day) {
-                            Ok(_) => println!("Successfully downloaded day {day}"),
+                            Ok(_) => println!("Successfully generated boilerplate for {day}"),
                             Err(e) => return eprintln!("{e}"),
                         }
                     }));
@@ -97,7 +97,9 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
     if generate {
         return Ok(());
     }
-    codegen(date.day)
+    codegen(date.day)?;
+    println!("Successfully generated boilerplate for {}", date.day);
+    Ok(())
 }
 
 fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
@@ -191,7 +193,6 @@ async fn download_input_async(
         ))?,
     }
 }
-
 
 fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
     let filename = date.filename();
@@ -331,7 +332,9 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
     if !args.generate {
         return Ok(());
     }
-    codegen(date.day)
+    codegen(date.day)?;
+    println!("Successfully generated boilerplate for {}", date.day);
+    Ok(())
 }
 
 pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
