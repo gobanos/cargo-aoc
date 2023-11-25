@@ -7,9 +7,9 @@ use reqwest::{
     header::{HeaderMap, COOKIE, USER_AGENT},
     StatusCode,
 };
-use std::io::Write;
 use std::path::Path;
 use std::process;
+use std::{cell::RefCell, io::Write, sync::OnceLock};
 use std::{error, sync::Arc};
 use std::{
     error::Error,
@@ -71,19 +71,27 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
                         let date = AOCDate { day, year };
                         match download_input_async(date, &client).await {
                             Ok(_) => println!("Successfully downloaded day {day}"),
-                            Err(e) => return eprintln!("{e}"),
-                        };
-                        if !generate {
-                            return;
-                        }
-                        match codegen(day) {
-                            Ok(_) => println!("Successfully generated boilerplate for {day}"),
                             Err(e) => eprintln!("{e}"),
+                        };
+                        if generate {
+                            match codegen(day) {
+                                Ok(_) => println!("Successfully generated boilerplate for {day}"),
+                                Err(e) => eprintln!("{e}"),
+                            }
                         }
+                        return day;
                     }));
                 }
+                let mut results = Vec::new();
                 for task in tasks {
-                    let _ = task.await;
+                    let r = task.await;
+                    if let Ok(r) = r {
+                        results.push(r);
+                    }
+                }
+                results.sort_unstable();
+                for i in results {
+                    let _ = update_lib_rs(i).map_err(|e| eprintln!("Couldn't update lib.rs: {e}"));
                 }
             });
         };
@@ -97,34 +105,39 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
     if generate {
         return Ok(());
     }
+    update_lib_rs(date.day)?;
     codegen(date.day)?;
     println!("Successfully generated boilerplate for {}", date.day);
     Ok(())
 }
 
-fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
+fn update_lib_rs(day: u32) -> Result<(), Box<dyn Error>> {
     let lib_rs_path = Path::new("src/lib.rs");
     if !lib_rs_path.exists() {
         Err("lib.rs does not exist!")?
     }
 
-    let mut lib_rs = fs::read_to_string(lib_rs_path)?;
+    let lib_rs = fs::read_to_string(lib_rs_path)?;
 
-    let str = format!("mod day{day}\n");
+    let str = format!("mod day{day};");
     if !lib_rs.contains(&str) {
-        lib_rs = format!("mod day{day}n{lib_rs}");
+        let lib_rs = format!("{str}\n{lib_rs}");
+        dbg!(&lib_rs);
         std::fs::write(lib_rs_path, lib_rs)?;
     } else {
         eprintln!("lib.rs already contains {str}. Skipping...");
     }
+    Ok(())
+}
 
+fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
     let filename = &format!("src/day{day}.rs");
     let filename = Path::new(filename);
     if filename.exists() {
         eprintln!("{filename:?} already exists. Skipping...");
         return Ok(());
     }
-    let code = r#"
+    let code = r#"use aoc_runner_derive::{aoc, aoc_generator};
 type InputType = ();
 type OutputType = ();
 #[aoc_generator(REP)]
@@ -332,6 +345,7 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
     if !args.generate {
         return Ok(());
     }
+    update_lib_rs(date.day)?;
     codegen(date.day)?;
     println!("Successfully generated boilerplate for {}", date.day);
     Ok(())
