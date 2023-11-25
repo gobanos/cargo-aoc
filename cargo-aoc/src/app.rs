@@ -7,11 +7,14 @@ use reqwest::{
     header::{HeaderMap, COOKIE, USER_AGENT},
     StatusCode,
 };
-use std::{fs::{self, File}, error::Error};
 use std::io::Write;
 use std::path::Path;
 use std::process;
 use std::{error, sync::Arc};
+use std::{
+    error::Error,
+    fs::{self, File},
+};
 
 use crate::Cli;
 
@@ -57,7 +60,59 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
 
     // Creates the AOCDate struct from the arguments (defaults to today...)
     let date: AOCDate = AOCDate::new(args);
-    download_input(date)
+    download_input(date)?;
+    Ok(())
+}
+
+fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
+    let lib_rs_path = Path::new("src/lib.rs");
+    if !lib_rs_path.exists() {
+        Err("lib.rs does not exist!")?
+    }
+
+    let mut lib_rs = fs::read_to_string(lib_rs_path)?;
+
+    let str = format!("mod day{day}");
+    if !lib_rs.contains(&str) {
+        lib_rs = format!("mod day{day}\n{lib_rs}");
+        std::fs::write(lib_rs_path, lib_rs)?;
+    } else {
+        eprintln!("lib.rs already contains {str}. Skipping...");
+    }
+
+    let filename = &format!("src/day{day}");
+    let filename = Path::new(filename);
+    if filename.exists() {
+        eprintln!("{filename:?} already exists. Skipping...");
+        return Ok(());
+    }
+    let code = r#"
+type InputType = ();
+type OutputType = ();
+#[aoc_generator(REP)]
+fn parse(input: &str) -> InputType {}
+
+#[aoc(REP, part1)]
+fn part1(input: InputType) -> OutputType {}
+
+#[aoc(REP, part2)]
+fn part2(input: InputType) -> OutputType {}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn part1_example() {}
+
+    #[test]
+    fn part2_example() {}
+}
+"#;
+    let code = code.replace("REP", &format!("day{day}"));
+    std::fs::write(filename, code)?;
+    Ok(())
 }
 
 // The client should have the appropriate headers set
