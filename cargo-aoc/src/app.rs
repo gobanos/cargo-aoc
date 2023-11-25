@@ -118,7 +118,7 @@ fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
         eprintln!("lib.rs already contains {str}. Skipping...");
     }
 
-    let filename = &format!("src/day{day}");
+    let filename = &format!("src/day{day}.rs");
     let filename = Path::new(filename);
     if filename.exists() {
         eprintln!("{filename:?} already exists. Skipping...");
