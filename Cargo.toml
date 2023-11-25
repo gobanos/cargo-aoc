@@ -6,3 +6,4 @@ members = [
     "cargo-aoc",
     "examples"
 ]
+resolver = "2"
