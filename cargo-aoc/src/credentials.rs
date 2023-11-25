@@ -69,12 +69,12 @@ impl CredentialsManager {
     /// Attemps to set the session token of the user in credentials.toml
     /// Returns an error in case of an IO error or something ...
     pub fn set_session_token(&mut self, token: String) -> Result<(), std::io::Error> {
-        // Sets the information of this struct
-        self.session_token = Some(token.clone());
         // Gets a reference to the local credentials.toml file
+        let toml_str = format!("session = \"{}\"", token);
+        // Sets the information of this struct
+        self.session_token = Some(token);
         let path_buf = CredentialsManager::get_credentials_file();
 
-        let toml_str = format!("session = \"{}\"", token);
         // Writes the session token to the file
         fs::write(path_buf, toml_str)
     }
