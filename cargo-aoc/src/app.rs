@@ -1,12 +1,17 @@
+use crate::{
+    credentials::CredentialsManager, date, project::ProjectManager, Bench, Credentials, Input,
+};
 use aoc_runner_internal::{Day, Part};
-use crate::{Bench, Credentials, credentials::CredentialsManager, date, project::ProjectManager, Input};
 use date::AOCDate;
-use reqwest::{blocking::Client, header::{COOKIE, USER_AGENT}, StatusCode};
-use std::error;
-use std::fs::{self, File};
+use reqwest::{
+    header::{HeaderMap, COOKIE, USER_AGENT},
+    StatusCode,
+};
+use std::{fs::{self, File}, error::Error};
 use std::io::Write;
 use std::path::Path;
 use std::process;
+use std::{error, sync::Arc};
 
 use crate::Cli;
 
@@ -31,61 +36,99 @@ pub fn execute_credentials(args: &Credentials) {
 }
 
 /// Executes the "input" subcommand of the app
-pub fn execute_input(sub_args: &Input) {
+pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
     // Gets the token or exit if it's not referenced.
     let token = CredentialsManager::new().get_session_token().expect(
         "Error: you need to setup your AOC token using \"cargo aoc credentials -s {token}\"",
     );
 
-    // Creates the AOCDate struct from the arguments (defaults to today...)
-    let date: AOCDate = AOCDate::new(sub_args);
-    println!(
-        "Requesting input for year {}, day {} ...",
-        date.year, date.day
-    );
-
-    // Creates an HTTP Client
-    let client = Client::new();
-    // Cookie formatting ...
     let formated_token = format!("session={}", token);
-    // Sends the query to the right URL, with the user token
-    let res = client
-        .get(&date.request_url())
-        .header(USER_AGENT, CARGO_AOC_USER_AGENT)
-        .header(COOKIE, formated_token)
-        .send();
+    let mut headers = HeaderMap::new();
+    headers.insert(USER_AGENT, CARGO_AOC_USER_AGENT.parse().unwrap());
+    headers.insert(COOKIE, formated_token.parse().unwrap());
 
-    // Depending on the StatusCode of the request, we'll write errors or try to write
-    // the result of the HTTP Request to a file
-    match res {
-            Ok(response) => match response.status() {
-                StatusCode::OK => {
-                    let filename = date.filename();
-                    let dir = date.directory();
-                    // Creates the file-tree to store inputs
-                    // TODO: Maybe use crate's infos to get its root in the filesystem ? 
-                    fs::create_dir_all(&dir).unwrap_or_else(|_| panic!("Could not create input directory: {}", dir));
+    if args.all {
+        let year = args
+            .year
+            .expect("Need to specify a year to run cargo-aoc input --all");
+        download_all_inputs(year, headers);
+        return Ok(());
+    }
 
-                    // Gets the body from the response and outputs everything to a file
-                    let body = response.text().expect("Could not read content from input");
-                    let mut file = File::create(&filename).unwrap_or_else(|_| panic!("Could not create file {}", filename));
-                    file.write_all(body.as_bytes()).unwrap_or_else(|_| panic!("Could not write to {}", filename));
-                }
-                sc => println!(
-                    "Could not find corresponding input. Are the day, year, and token correctly set ? Status: {}\
-                    Message: {}", sc, response.text().unwrap_or_else(|_| String::new())
-                ),
-            },
-            Err(e) => println!("Failed to get a response: {}", e),
-        }
+    // Creates the AOCDate struct from the arguments (defaults to today...)
+    let date: AOCDate = AOCDate::new(args);
+    download_input(date)
 }
 
-fn download_input(day: Day, year: u32) -> Result<(), Box<dyn error::Error>> {
-    let date = AOCDate {
-        day: u32::from(day.0),
-        year: year as i32,
-    };
+// The client should have the appropriate headers set
+async fn download_input_async(
+    date: AOCDate,
+    client: &reqwest::Client,
+) -> Result<(), Box<dyn error::Error>> {
+    let filename = date.filename();
+    let filename = Path::new(&filename);
 
+    if filename.exists() {
+        return Ok(());
+    }
+
+    let response = client.get(&date.request_url()).send().await?;
+
+    match response.status() {
+        StatusCode::OK => {
+            let dir = date.directory();
+            // Creates the file-tree to store inputs
+            // TODO: Maybe use crate's infos to get its root in the filesystem ?
+            fs::create_dir_all(&dir)?;
+
+            // Gets the body from the response and outputs everything to a file
+            let body = response
+                .text()
+                .await
+                .map_err(|e| format!("Can't convert response to text: {e:?}"))?;
+            let mut file = File::create(&filename)?;
+            file.write_all(body.as_bytes())?;
+            Ok(())
+        }
+        StatusCode::NOT_FOUND => Err(format!("Day {} not yet ready", date.day))?,
+        sc => Err(format!(
+            "Could not find corresponding input. Is the token correct?\n\
+                Status: {}\n\n\
+                Message: {}",
+            sc,
+            response.text().await.unwrap_or_else(|_| String::new())
+        ))?,
+    }
+}
+
+fn download_all_inputs(year: i32, headers: HeaderMap) {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(async {
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()
+            .unwrap();
+        let client = Arc::new(client);
+
+        let mut tasks = Vec::new();
+        for day in 1..26u32 {
+            let client = client.clone();
+            tasks.push(tokio::spawn(async move {
+                let date = AOCDate { day, year };
+                match download_input_async(date, &*client).await {
+                    Ok(_) => println!("Successfully downloaded day {day}"),
+                    Err(e) => eprintln!("{e}"),
+                };
+            }));
+        }
+        for task in tasks {
+            let _ = task.await;
+        }
+    });
+    return;
+}
+
+fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
     let filename = date.filename();
     let filename = Path::new(&filename);
 
@@ -95,7 +138,7 @@ fn download_input(day: Day, year: u32) -> Result<(), Box<dyn error::Error>> {
 
     let token = CredentialsManager::new().get_session_token()?;
     // Creates an HTTP Client
-    let client = Client::new();
+    let client = reqwest::blocking::Client::new();
     // Cookie formatting ...
     let formated_token = format!("session={}", token);
 
@@ -186,7 +229,11 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
         return Err("No matching day & part found".into());
     }
 
-    download_input(day, year)?;
+    let date = AOCDate {
+        day: u32::from(day.0),
+        year: year as i32,
+    };
+    download_input(date)?;
 
     let main_content = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -194,10 +241,7 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
     ))
     .replace("{CRATE_SLUG}", &pm.slug)
     .replace("{YEAR}", &day_parts.year.to_string())
-    .replace(
-        "{INPUT}",
-        &template_input(day, year, args.input.as_deref()),
-    )
+    .replace("{INPUT}", &template_input(day, year, args.input.as_deref()))
     .replace("{BODY}", &body);
 
     fs::create_dir_all("target/aoc/aoc-autobuild/src")
@@ -383,7 +427,11 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
         String::new()
     };
 
-    download_input(day, year)?;
+    let date = AOCDate {
+        day: u32::from(day.0),
+        year: year as i32,
+    };
+    download_input(date)?;
 
     let main_content = bench_tpl
         .replace("{CRATE_SLUG}", &pm.slug)

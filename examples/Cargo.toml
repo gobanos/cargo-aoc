@@ -15,6 +15,6 @@ path = "aoc-2018/main.rs"
 [dependencies]
 aoc-runner = { path = "../aoc-runner" }
 aoc-runner-derive = { path = "../aoc-runner-derive" }
-fnv = "1.0.6"
-chrono = "0.4.6"
+fnv = "1.0.7"
+chrono = "0.4.31"
 petgraph = "0.4.13"

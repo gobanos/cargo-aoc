@@ -11,17 +11,17 @@ pub struct AOCDate {
 }
 
 impl AOCDate {
-    /// Creates a date struct for the given `ArgMatches`, defaulting to today's day and year
     pub fn new(matches: &Input) -> Self {
         // Get the current date in the EST timezone, which is used by advent of code to
         // release new puzzles.
         let utc_today = Utc::now().naive_utc();
         let today = EST.from_utc_datetime(&utc_today);
-        let day: u32 = matches.day
+        let day: u32 = matches
+            .day
+            .map(|d| d.0 as u32)
             .unwrap_or_else(|| today.day());
 
-        let year: i32 = matches.year
-            .unwrap_or_else(|| today.year());
+        let year: i32 = matches.year.unwrap_or_else(|| today.year());
 
         AOCDate { day, year }
     }
