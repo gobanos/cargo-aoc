@@ -1,6 +1,6 @@
+use directories::ProjectDirs;
 use std::fs;
 use std::path::PathBuf;
-use directories::ProjectDirs;
 
 pub struct CredentialsManager {
     session_token: Option<String>,
@@ -28,14 +28,16 @@ impl CredentialsManager {
     pub fn new() -> Self {
         // Gets a reference to the local credentials.toml file
         let path_buf = CredentialsManager::get_credentials_file();
-        
+
         // If that doesn't exist yet, check the legacy path
         if !path_buf.exists() {
             let old_path_buf = CredentialsManager::get_old_credentials_file();
             if old_path_buf.exists() {
                 // copy and delete, in case that they are on different file systems
-                fs::copy(old_path_buf.as_path(), path_buf.as_path()).expect("Couldn't copy credentials to new location");
-                fs::remove_file(old_path_buf.as_path()).expect("Couldn't delete old credentials file");
+                fs::copy(old_path_buf.as_path(), path_buf.as_path())
+                    .expect("Couldn't copy credentials to new location");
+                fs::remove_file(old_path_buf.as_path())
+                    .expect("Couldn't delete old credentials file");
             }
         }
 

@@ -9,6 +9,7 @@ readme = "../README.md"
 include = ["Cargo.toml", "src/**/*", "template/**/*.tpl", "../README.md"]
 edition = "2021"
 
+
 [dependencies]
 #aoc-runner-internal = { path = "../aoc-runner-internal" }
 aoc-runner-internal = "0.1.0"
@@ -19,4 +20,6 @@ reqwest = { version = "0.11.22", features = ["blocking"] }
 webbrowser = "0.8.12"
 directories = "4.0.1"
 clap = { version = "4.4.8", features = ["derive"] }
-tokio = { version = "1.34.0", features = ["full"] }
+tokio = { version = "1.34.0", features = ["rt"] }
+
+

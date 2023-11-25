@@ -3,6 +3,7 @@ use chrono_tz::EST;
 
 use crate::Input;
 
+#[derive(Debug, Clone, Copy)]
 pub struct AOCDate {
     /// The day of the input to retrieve
     pub day: u32,

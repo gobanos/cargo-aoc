@@ -1,7 +1,7 @@
-mod project;
 mod app;
 mod credentials;
 mod date;
+mod project;
 
 use aoc_runner_internal::{Day, Part};
 use app::{execute_bench, execute_credentials, execute_default, execute_input};
@@ -29,6 +29,10 @@ pub struct Cli {
     /// Add debug info for profiling tools.
     #[clap(long)]
     profile: bool,
+
+    /// Generate the boilerplate for the given day.
+    #[clap(long, short)]
+    generate: bool,
 
     #[clap(subcommand)]
     subcmd: Option<SubCommands>,
@@ -86,10 +90,13 @@ pub struct Input {
     #[clap(short, long)]
     year: Option<i32>,
 
-    
     /// Downloads all possible inputs for a given year
     #[clap(short, long)]
     all: bool,
+
+    /// Generate the boilerplate for the given day.
+    #[clap(long, short)]
+    generate: bool,
 }
 
 fn main() {
@@ -101,9 +108,11 @@ fn main() {
 
     match subcommand {
         SubCommands::Bench(arg) => execute_bench(&arg),
-        SubCommands::Credentials(arg) => Ok(execute_credentials(&arg)),
+        SubCommands::Credentials(arg) => {
+            execute_credentials(&arg);
+            Ok(())
+        }
         SubCommands::Input(arg) => execute_input(&arg),
     }
     .unwrap()
 }
-

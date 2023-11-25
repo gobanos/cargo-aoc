@@ -25,7 +25,7 @@ pub fn generator_impl(args: pm::TokenStream, input: pm::TokenStream) -> pm::Toke
         panic!("cannot find output type for {}", fn_name)
     };
 
-    let (special_type, out_t) = if let Some((ty, inner)) = utils::extract_result(&*out_t) {
+    let (special_type, out_t) = if let Some((ty, inner)) = utils::extract_result(&out_t) {
         (Some(ty), Box::new(inner))
     } else {
         (None, out_t)

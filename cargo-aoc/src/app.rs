@@ -7,11 +7,14 @@ use reqwest::{
     header::{HeaderMap, COOKIE, USER_AGENT},
     StatusCode,
 };
-use std::{fs::{self, File}, error::Error};
-use std::io::Write;
 use std::path::Path;
 use std::process;
+use std::{io::Write};
 use std::{error, sync::Arc};
+use std::{
+    error::Error,
+    fs::{self, File},
+};
 
 use crate::Cli;
 
@@ -47,17 +50,123 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
     headers.insert(USER_AGENT, CARGO_AOC_USER_AGENT.parse().unwrap());
     headers.insert(COOKIE, formated_token.parse().unwrap());
 
+    let generate = args.generate;
     if args.all {
         let year = args
             .year
             .expect("Need to specify a year to run cargo-aoc input --all");
-        download_all_inputs(year, headers);
+        {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(async {
+                let client = reqwest::Client::builder()
+                    .default_headers(headers)
+                    .build()
+                    .unwrap();
+                let client = Arc::new(client);
+
+                let mut tasks = Vec::new();
+                for day in 1..26u32 {
+                    let client = client.clone();
+                    tasks.push(tokio::spawn(async move {
+                        let date = AOCDate { day, year };
+                        match download_input_async(date, &client).await {
+                            Ok(_) => println!("Successfully downloaded day {day}"),
+                            Err(e) => eprintln!("{e}"),
+                        };
+                        if generate {
+                            match codegen(day) {
+                                Ok(_) => println!("Successfully generated boilerplate for {day}"),
+                                Err(e) => eprintln!("{e}"),
+                            }
+                        }
+                        day
+                    }));
+                }
+                let mut results = Vec::new();
+                for task in tasks {
+                    let r = task.await;
+                    if let Ok(r) = r {
+                        results.push(r);
+                    }
+                }
+                results.sort_unstable();
+                for i in results {
+                    let _ = update_lib_rs(i).map_err(|e| eprintln!("Couldn't update lib.rs: {e}"));
+                }
+            });
+        };
         return Ok(());
     }
 
     // Creates the AOCDate struct from the arguments (defaults to today...)
     let date: AOCDate = AOCDate::new(args);
-    download_input(date)
+    download_input(date)?;
+
+    if generate {
+        return Ok(());
+    }
+    update_lib_rs(date.day)?;
+    codegen(date.day)?;
+    println!("Successfully generated boilerplate for {}", date.day);
+    Ok(())
+}
+
+fn update_lib_rs(day: u32) -> Result<(), Box<dyn Error>> {
+    let lib_rs_path = Path::new("src/lib.rs");
+    if !lib_rs_path.exists() {
+        Err("lib.rs does not exist!")?
+    }
+
+    let lib_rs = fs::read_to_string(lib_rs_path)?;
+
+    let str = format!("mod day{day};");
+    if !lib_rs.contains(&str) {
+        let lib_rs = format!("{str}\n{lib_rs}");
+        std::fs::write(lib_rs_path, lib_rs)?;
+    } else {
+        eprintln!("lib.rs already contains {str}. Skipping...");
+    }
+    Ok(())
+}
+
+fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
+    let filename = &format!("src/day{day}.rs");
+    let filename = Path::new(filename);
+    if filename.exists() {
+        eprintln!("{filename:?} already exists. Skipping...");
+        return Ok(());
+    }
+    let code = r#"use aoc_runner_derive::{aoc, aoc_generator};
+#[aoc_generator(REP)]
+fn parse(input: &str) -> String {
+    todo!()
+}
+
+#[aoc(REP, part1)]
+fn part1(input: &str) -> String {
+    todo!()
+}
+
+#[aoc(REP, part2)]
+fn part2(input: &str) -> String {
+    todo!()
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn part1_example() {}
+
+    #[test]
+    fn part2_example() {}
+}
+"#;
+    let code = code.replace("REP", &format!("day{day}"));
+    std::fs::write(filename, code)?;
+    Ok(())
 }
 
 // The client should have the appropriate headers set
@@ -86,7 +195,7 @@ async fn download_input_async(
                 .text()
                 .await
                 .map_err(|e| format!("Can't convert response to text: {e:?}"))?;
-            let mut file = File::create(&filename)?;
+            let mut file = File::create(filename)?;
             file.write_all(body.as_bytes())?;
             Ok(())
         }
@@ -99,33 +208,6 @@ async fn download_input_async(
             response.text().await.unwrap_or_else(|_| String::new())
         ))?,
     }
-}
-
-fn download_all_inputs(year: i32, headers: HeaderMap) {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(async {
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()
-            .unwrap();
-        let client = Arc::new(client);
-
-        let mut tasks = Vec::new();
-        for day in 1..26u32 {
-            let client = client.clone();
-            tasks.push(tokio::spawn(async move {
-                let date = AOCDate { day, year };
-                match download_input_async(date, &*client).await {
-                    Ok(_) => println!("Successfully downloaded day {day}"),
-                    Err(e) => eprintln!("{e}"),
-                };
-            }));
-        }
-        for task in tasks {
-            let _ = task.await;
-        }
-    });
-    return;
 }
 
 fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
@@ -143,7 +225,7 @@ fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
     let formated_token = format!("session={}", token);
 
     let response = client
-        .get(&date.request_url())
+        .get(date.request_url())
         .header(USER_AGENT, CARGO_AOC_USER_AGENT)
         .header(COOKIE, formated_token)
         .send()?;
@@ -153,11 +235,11 @@ fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
                 let dir = date.directory();
                 // Creates the file-tree to store inputs
                 // TODO: Maybe use crate's infos to get its root in the filesystem ?
-                fs::create_dir_all(&dir)?;
+                fs::create_dir_all(dir)?;
 
                 // Gets the body from the response and outputs everything to a file
                 let body = response.text()?;
-                let mut file = File::create(&filename)?;
+                let mut file = File::create(filename)?;
                 file.write_all(body.as_bytes())?;
             }
             sc => return Err(format!(
@@ -246,13 +328,13 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
 
     fs::create_dir_all("target/aoc/aoc-autobuild/src")
         .expect("failed to create autobuild directory");
-    fs::write("target/aoc/aoc-autobuild/Cargo.toml", &cargo_content)
+    fs::write("target/aoc/aoc-autobuild/Cargo.toml", cargo_content)
         .expect("failed to write Cargo.toml");
-    fs::write("target/aoc/aoc-autobuild/src/main.rs", &main_content)
+    fs::write("target/aoc/aoc-autobuild/src/main.rs", main_content)
         .expect("failed to write src/main.rs");
 
     let status = process::Command::new("cargo")
-        .args(&["run", "--release"])
+        .args(["run", "--release"])
         .current_dir("target/aoc/aoc-autobuild")
         .spawn()
         .expect("Failed to run cargo")
@@ -263,6 +345,12 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
         process::exit(status.code().unwrap_or(-1));
     }
 
+    if !args.generate {
+        return Ok(());
+    }
+    update_lib_rs(date.day)?;
+    codegen(date.day)?;
+    println!("Successfully generated boilerplate for {}", date.day);
     Ok(())
 }
 
@@ -360,7 +448,7 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
                                 .replace(
                                     "{NAME}",
                                     if let Some(n) = &dp.name {
-                                        &n
+                                        n
                                     } else {
                                         "(default)"
                                     },
@@ -412,7 +500,7 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
                                     .replace(
                                         "{NAME}",
                                         if let Some(n) = &dp.name {
-                                            &n
+                                            n
                                         } else {
                                             "(default)"
                                         },
@@ -452,16 +540,16 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
 
     fs::create_dir_all("target/aoc/aoc-autobench/benches")
         .expect("failed to create autobench directory");
-    fs::write("target/aoc/aoc-autobench/Cargo.toml", &cargo_content)
+    fs::write("target/aoc/aoc-autobench/Cargo.toml", cargo_content)
         .expect("failed to write Cargo.toml");
     fs::write(
         "target/aoc/aoc-autobench/benches/aoc_benchmark.rs",
-        &main_content,
+        main_content,
     )
     .expect("failed to write src/aoc_benchmark.rs");
 
     let status = process::Command::new("cargo")
-        .args(&["bench"])
+        .args(["bench"])
         .current_dir("target/aoc/aoc-autobench")
         .spawn()
         .expect("Failed to run cargo")
