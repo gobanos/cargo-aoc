@@ -111,7 +111,7 @@ fn main() {
         SubCommands::Credentials(arg) => {
             execute_credentials(&arg);
             Ok(())
-        },
+        }
         SubCommands::Input(arg) => execute_input(&arg),
     }
     .unwrap()
