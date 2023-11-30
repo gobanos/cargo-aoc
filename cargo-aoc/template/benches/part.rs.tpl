@@ -1,6 +1,6 @@
 
-    let mut {PART_NAME} = Vec::new();
+    let mut group = c.benchmark_group("Day{DAY} - Part{PART}");
 
     {IMPLS}
 
-    c.bench_functions("Day{DAY} - Part{PART}", {PART_NAME}, ());
+    group.finish();

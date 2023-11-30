@@ -1,11 +1,14 @@
 mod app;
+mod args;
 mod credentials;
 mod date;
 mod project;
+mod errors;
 
 use aoc_runner_internal::{Day, Part};
 use app::{execute_bench, execute_credentials, execute_default, execute_input};
 
+use crate::args::args_without_aoc;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
@@ -17,7 +20,7 @@ use clap::Parser;
 )]
 pub struct Cli {
     /// Specifies the day. Defaults to last implemented.
-    #[clap()]
+    #[clap(short, long)]
     day: Option<Day>,
 
     /// Specifies the part. Defaults to both parts.
@@ -100,7 +103,7 @@ pub struct Input {
 }
 
 fn main() {
-    let cli = Cli::parse();
+    let cli = Cli::parse_from(args_without_aoc());
 
     let Some(subcommand) = cli.subcmd else {
         return execute_default(&cli).unwrap();

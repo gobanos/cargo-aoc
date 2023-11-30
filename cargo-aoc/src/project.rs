@@ -2,10 +2,13 @@ use aoc_runner_internal::DayParts;
 use std::error;
 use std::fs;
 use std::process;
+use crate::errors::CouldNotLoadDayParts;
 
+#[derive(Clone, Debug)]
 pub struct ProjectManager {
     pub name: String,
     pub slug: String,
+    pub lib_path: Option<String>,
 }
 
 impl ProjectManager {
@@ -23,9 +26,16 @@ impl ProjectManager {
 
         let crate_slug = crate_name.replace('-', "_");
 
+        let lib_path = cargo
+            .get("lib")
+            .and_then(|lib| lib.get("path"))
+            .and_then(|lib_path| lib_path.as_str())
+            .map(String::from);
+
         Ok(ProjectManager {
             name: crate_name,
             slug: crate_slug,
+            lib_path,
         })
     }
 
@@ -42,6 +52,6 @@ impl ProjectManager {
             .into());
         }
 
-        DayParts::load()
+        DayParts::load().map_err(|err| CouldNotLoadDayParts(err).into())
     }
 }

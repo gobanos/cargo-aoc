@@ -1,6 +1,6 @@
 
-    let mut {GEN_NAME} = Vec::new();
+    let mut group = c.benchmark_group("Generator Day{DAY}");
 
     {IMPLS}
 
-    c.bench_functions("Generator Day{DAY}", {GEN_NAME}, ());
+    group.finish();

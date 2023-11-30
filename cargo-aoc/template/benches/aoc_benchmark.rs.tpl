@@ -6,7 +6,6 @@ extern crate aoc_runner;
 use {CRATE_SLUG}::*;
 use aoc_runner::ArcStr;
 use criterion::Criterion;
-use criterion::Fun;
 use std::fmt::Display;
 
 #[inline]

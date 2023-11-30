@@ -1,6 +1,6 @@
 [package]
 name = "cargo-aoc"
-version = "0.3.4"
+version = "0.3.5"
 authors = ["Grégory Obanos <gregory.obanos@gmail.com>", "Olivier Pinon <oliv.pinon@gmail.com>"]
 description = "Cargo Advent of Code Helper"
 license = "MIT/Apache-2.0"
@@ -13,13 +13,11 @@ edition = "2021"
 [dependencies]
 #aoc-runner-internal = { path = "../aoc-runner-internal" }
 aoc-runner-internal = "0.1.0"
-toml = "0.5.11"
+toml = "0.8.8"
 chrono = "0.4.31"
 chrono-tz = "0.8.4"
 reqwest = { version = "0.11.22", features = ["blocking"] }
 webbrowser = "0.8.12"
-directories = "4.0.1"
+directories = "5.0.1"
 clap = { version = "4.4.8", features = ["derive"] }
 tokio = { version = "1.34.0", features = ["rt"] }
-
-

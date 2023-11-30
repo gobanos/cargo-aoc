@@ -60,7 +60,7 @@ impl CredentialsManager {
         }
     }
 
-    /// Attemps to get the session token of the user if it is referenced
+    /// Attempt to get the session token of the user if it is referenced
     /// in the credentials.toml file. Returns an error otherwise.
     pub fn get_session_token(&self) -> Result<String, String> {
         self.session_token
@@ -68,7 +68,7 @@ impl CredentialsManager {
             .ok_or_else(|| "No session token available".into())
     }
 
-    /// Attemps to set the session token of the user in credentials.toml
+    /// Attempt to set the session token of the user in credentials.toml
     /// Returns an error in case of an IO error or something ...
     pub fn set_session_token(&mut self, token: String) -> Result<(), std::io::Error> {
         // Gets a reference to the local credentials.toml file

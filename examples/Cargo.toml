@@ -17,4 +17,4 @@ aoc-runner = { path = "../aoc-runner" }
 aoc-runner-derive = { path = "../aoc-runner-derive" }
 fnv = "1.0.7"
 chrono = "0.4.31"
-petgraph = "0.4.13"
+petgraph = "0.6.4"

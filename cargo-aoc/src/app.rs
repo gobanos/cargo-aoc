@@ -7,9 +7,9 @@ use reqwest::{
     header::{HeaderMap, COOKIE, USER_AGENT},
     StatusCode,
 };
+use std::io::Write;
 use std::path::Path;
 use std::process;
-use std::{io::Write};
 use std::{error, sync::Arc};
 use std::{
     error::Error,
@@ -45,6 +45,8 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
         "Error: you need to setup your AOC token using \"cargo aoc credentials -s {token}\"",
     );
 
+    let pm = ProjectManager::new()?;
+
     let formated_token = format!("session={}", token);
     let mut headers = HeaderMap::new();
     headers.insert(USER_AGENT, CARGO_AOC_USER_AGENT.parse().unwrap());
@@ -63,10 +65,10 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
                     .build()
                     .unwrap();
                 let client = Arc::new(client);
-
                 let mut tasks = Vec::new();
                 for day in 1..26u32 {
                     let client = client.clone();
+                    let pm = pm.clone();
                     tasks.push(tokio::spawn(async move {
                         let date = AOCDate { day, year };
                         match download_input_async(date, &client).await {
@@ -74,8 +76,10 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
                             Err(e) => eprintln!("{e}"),
                         };
                         if generate {
-                            match codegen(day) {
-                                Ok(_) => println!("Successfully generated boilerplate for {day}"),
+                            match codegen(day, &pm) {
+                                Ok(_) => {
+                                    println!("Successfully generated boilerplate for day {day}")
+                                }
                                 Err(e) => eprintln!("{e}"),
                             }
                         }
@@ -91,7 +95,8 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
                 }
                 results.sort_unstable();
                 for i in results {
-                    let _ = update_lib_rs(i).map_err(|e| eprintln!("Couldn't update lib.rs: {e}"));
+                    let _ =
+                        update_lib_rs(i, &pm).map_err(|e| eprintln!("Couldn't update lib.rs: {e}"));
                 }
             });
         };
@@ -103,16 +108,15 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
     download_input(date)?;
 
     if generate {
-        return Ok(());
+        update_lib_rs(date.day, &pm)?;
+        codegen(date.day, &pm)?;
+        println!("Successfully generated boilerplate for {}", date.day);
     }
-    update_lib_rs(date.day)?;
-    codegen(date.day)?;
-    println!("Successfully generated boilerplate for {}", date.day);
     Ok(())
 }
 
-fn update_lib_rs(day: u32) -> Result<(), Box<dyn Error>> {
-    let lib_rs_path = Path::new("src/lib.rs");
+fn update_lib_rs(day: u32, pm: &ProjectManager) -> Result<(), Box<dyn Error>> {
+    let lib_rs_path = dbg!(Path::new(pm.lib_path.as_deref().unwrap_or("src/lib.rs")));
     if !lib_rs_path.exists() {
         Err("lib.rs does not exist!")?
     }
@@ -122,50 +126,31 @@ fn update_lib_rs(day: u32) -> Result<(), Box<dyn Error>> {
     let str = format!("mod day{day};");
     if !lib_rs.contains(&str) {
         let lib_rs = format!("{str}\n{lib_rs}");
-        std::fs::write(lib_rs_path, lib_rs)?;
+        fs::write(lib_rs_path, lib_rs)?;
     } else {
         eprintln!("lib.rs already contains {str}. Skipping...");
     }
     Ok(())
 }
 
-fn codegen(day: u32) -> Result<(), Box<dyn Error>> {
-    let filename = &format!("src/day{day}.rs");
-    let filename = Path::new(filename);
+fn codegen(day: u32, pm: &ProjectManager) -> Result<(), Box<dyn Error>> {
+    let src_dir = pm
+        .lib_path
+        .as_deref()
+        .map(Path::new)
+        .and_then(|lib_path| lib_path.parent())
+        .unwrap_or(Path::new("src"));
+    let filename = src_dir.join(format!("day{day}.rs"));
     if filename.exists() {
         eprintln!("{filename:?} already exists. Skipping...");
         return Ok(());
     }
-    let code = r#"use aoc_runner_derive::{aoc, aoc_generator};
-#[aoc_generator(REP)]
-fn parse(input: &str) -> String {
-    todo!()
-}
-
-#[aoc(REP, part1)]
-fn part1(input: &str) -> String {
-    todo!()
-}
-
-#[aoc(REP, part2)]
-fn part2(input: &str) -> String {
-    todo!()
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn part1_example() {}
-
-    #[test]
-    fn part2_example() {}
-}
-"#;
-    let code = code.replace("REP", &format!("day{day}"));
-    std::fs::write(filename, code)?;
+    let code = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/template/src/day.rs.tpl"
+    ))
+    .replace("{DAY}", &format!("day{day}"));
+    fs::write(filename, code)?;
     Ok(())
 }
 
@@ -254,13 +239,26 @@ fn download_input(date: AOCDate) -> Result<(), Box<dyn error::Error>> {
 pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
     let pm = ProjectManager::new()?;
 
-    let day_parts = pm.build_project()?;
+    let mut day_parts = pm.build_project()?;
 
     let part = args.part;
     let day = args
         .day
         .unwrap_or_else(|| day_parts.last().expect("No implementation found").day);
     let year = day_parts.year;
+
+    let date = AOCDate {
+        day: u32::from(day.0),
+        year: year as i32,
+    };
+
+    if args.generate {
+        update_lib_rs(date.day, &pm)?;
+        codegen(date.day, &pm)?;
+        println!("Successfully generated boilerplate for {}", date.day);
+        // Rebuild to include newly generated day
+        day_parts = pm.build_project()?;
+    }
 
     let cargo_content = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -311,10 +309,6 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
         return Err("No matching day & part found".into());
     }
 
-    let date = AOCDate {
-        day: u32::from(day.0),
-        year: year as i32,
-    };
     download_input(date)?;
 
     let main_content = include_str!(concat!(
@@ -344,13 +338,6 @@ pub fn execute_default(args: &Cli) -> Result<(), Box<dyn error::Error>> {
     if !status.success() {
         process::exit(status.code().unwrap_or(-1));
     }
-
-    if !args.generate {
-        return Ok(());
-    }
-    update_lib_rs(date.day)?;
-    codegen(date.day)?;
-    println!("Successfully generated boilerplate for {}", date.day);
     Ok(())
 }
 
