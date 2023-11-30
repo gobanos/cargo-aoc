@@ -100,7 +100,8 @@ pub struct Input {
 }
 
 fn main() {
-    let cli = Cli::parse();
+    let args = std::env::args().enumerate().filter(|(n, arg)| *n != 1 || arg != "aoc").map(|(_, arg)| arg);
+    let cli = Cli::parse_from(args);
 
     let Some(subcommand) = cli.subcmd else {
         return execute_default(&cli).unwrap();
