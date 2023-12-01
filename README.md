@@ -23,7 +23,7 @@ You will need to find your session token for the AoC in order for cargo-aoc to w
 * Firefox: "Storage" tab, Cookies, and copy the "Value" field of the `session` cookie.
 * Google Chrome / Chromium: "Application" tab, Cookies, and copy the "Value" field of the `session` cookie.
 
-Once you have it, simply run : `cargo aoc credentials -s {token}`
+Once you have it, simply run : `cargo aoc credentials {token}`
 
 You're now ready to start coding ! 
 
