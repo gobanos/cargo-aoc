@@ -463,6 +463,7 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
                 gen_tpl
                     .replace("{GEN_NAME}", &gen_name)
                     .replace("{DAY}", &day.0.to_string())
+                    .replace("{PART}", &p.0.to_string())
                     .replace(
                         "{IMPLS}",
                         &matching_parts
