@@ -1,12 +1,12 @@
 # Cargo Advent of Code Helper
 
-`cargo-aoc` is a simple CLI tool that aims to be a helper for the [Advent of Code](https://adventofcode.com). 
+`cargo-aoc` is a simple CLI tool that aims to be a helper for the [Advent of Code](https://adventofcode.com).
 
 Implement your solution. Let us handle the rest.
 
 # Features
-* Input downloading 
-* Running your solution 
+* Input downloading
+* Running your solution
 * Automatic benchmarking of your solution using [Criterion](https://github.com/japaric/criterion.rs)
 
 # Getting started
@@ -23,17 +23,17 @@ You will need to find your session token for the AoC in order for cargo-aoc to w
 * Firefox: "Storage" tab, Cookies, and copy the "Value" field of the `session` cookie.
 * Google Chrome / Chromium: "Application" tab, Cookies, and copy the "Value" field of the `session` cookie.
 
-Once you have it, simply run : `cargo aoc credentials {token}`
+Once you have it, simply run : `cargo aoc credentials set {token}`
 
-You're now ready to start coding ! 
+You're now ready to start coding !
 
-NOTE: If for some reason your token has changed, dont forget to change it back. 
+NOTE: If for some reason your token has changed (which can happen from one year to the other), dont forget to change it back.
 
-`cargo aoc credentials` will show the currently stored user token
+`cargo aoc credentials get` will show the currently stored user token
 
 ## Setting up the project
 
-In order for `cargo-aoc` to work properly, you have to set the project up correctly. 
+In order for `cargo-aoc` to work properly, you have to set the project up correctly.
 
 If you get lost during the process, you can take [this example repository of AoC 2015](https://github.com/gobanos/advent-of-code-2015) as a template.
 
@@ -42,22 +42,22 @@ At the end of the `src/lib.rs`, you will have to use the macro `aoc_lib!{ year =
 year of the AoC puzzles being solved.
 
 When implementing a solution for a day, you have to provide functions and tag them accordingly.
-A function is either a **solver** or a **generator**. 
+A function is either a **solver** or a **generator**.
 
-Those two types of functions are being executed and benchmarked seperately. Lets have a closer look : 
+Those two types of functions are being executed and benchmarked seperately. Lets have a closer look :
 
 ### Generator functions
 
-Generators allows you to provide a custom type to the solver functions. Sometimes in AoC, you have to parse 
-an input and extract a logical structure out of it, before you can actually solve the problem. 
+Generators allows you to provide a custom type to the solver functions. Sometimes in AoC, you have to parse
+an input and extract a logical structure out of it, before you can actually solve the problem.
 
 Generator functions are tagged `#[aoc_generator(dayX)]`.
 
-Because examples are worth a thousand words, lets take a look at [Year 2015, Day 2](https://adventofcode.com/2015/day/2) : 
+Because examples are worth a thousand words, lets take a look at [Year 2015, Day 2](https://adventofcode.com/2015/day/2) :
 
 From the puzzle's description, we know that `[we] have a list of the dimensions (length l, width w, and height h) of each present`, each present on one line, represented like so: `{L}x{W}x{H}`.
 
-We might want to first parse the input and extract logical `Gift` structs out of it, like: 
+We might want to first parse the input and extract logical `Gift` structs out of it, like:
 
 ```
 pub struct Gift {
@@ -65,12 +65,12 @@ pub struct Gift {
     w: u32,
     h: u32
 }
-``` 
+```
 
 In @Gobanos' reference implementation, we can see that he instead chose to settle for a custom type :
 `type Gift = (u32, u32, u32);`.
 
-Thus, writing a generator for `Gift`s is fairly simple: 
+Thus, writing a generator for `Gift`s is fairly simple:
 
 ```
 #[aoc_generator(day2)]
@@ -86,18 +86,18 @@ pub fn input_generator(input: &str) -> Vec<Gift> {
             )
         }).collect()
 }
-``` 
+```
 
 As you can see, generators take a `&str` (or a `&[u8]`) type as an input, and outputs any type that you want, so you can then use it in `solver` functions.
 
 [link to doc](https://docs.rs/aoc-runner-derive/latest/aoc_runner_derive/attr.aoc_generator.html)
 
-### Solver functions 
+### Solver functions
 
 Solver functions are typically your algorithms, they take any input type provided by a generator, and return any type that you want to use, provided that it implements the `Display` trait.
 
-Solver functions are tagged `#[aoc(day2, part1)]`. 
-Optionally, you can have multiple implementation for the same part of a day. You must then use a name to tag them correctly, for example : `#[aoc(day2, part1, for_loop)]`. 
+Solver functions are tagged `#[aoc(day2, part1)]`.
+Optionally, you can have multiple implementation for the same part of a day. You must then use a name to tag them correctly, for example : `#[aoc(day2, part1, for_loop)]`.
 
 Following with the previous example, implementing a solver for the part one could be done like this :
 
@@ -112,9 +112,9 @@ pub fn solve_part1(input: &[Gift]) -> u32 {
         })
         .sum()
 }
-``` 
+```
 
-Notice how we're taking the `Gift`s generated previously, and using Rust's iterators to solve the problem efficiently, all the while keeping the code maintainable. 
+Notice how we're taking the `Gift`s generated previously, and using Rust's iterators to solve the problem efficiently, all the while keeping the code maintainable.
 
 The output of this particular solver is an `u32`, which of course implements `Display`.
 When running your solution using `cargo aoc`, said result will then get printed in the console, along with other informations about execution time.
@@ -123,7 +123,7 @@ When running your solution using `cargo aoc`, said result will then get printed 
 
 # Downloading your input manually
 
-`cargo aoc input` will download an input and store it in `input/{year}/day_{day}.txt`. 
+`cargo aoc input` will download an input and store it in `input/{year}/day_{day}.txt`.
 
 Please note that by default, we're taking today's date as the argument. Of course, you can change this using : `cargo aoc input -d {day} -y {year}`
 
@@ -131,7 +131,7 @@ Please note that by default, we're taking today's date as the argument. Of cours
 
 `cargo aoc` will run the latest implemented day, downloading your input beforehand. It will show you the result, and a short summary of how well it did perform.
 
-Example output on my Chromebook, running [@Gobanos' AOC2015](https://github.com/gobanos/advent-of-code-2015) : 
+Example output on my Chromebook, running [@Gobanos' AOC2015](https://github.com/gobanos/advent-of-code-2015) :
 ```
 [olivier@olivier-pc advent-of-code-2015]$ cargo aoc
     Finished dev [unoptimized + debuginfo] target(s) in 0.12s
@@ -156,10 +156,10 @@ Benchmarking is powered by [Criterion](https://github.com/japaric/criterion.rs).
 
 Benchmarks for each days are then generated in `target/aoc/aoc-autobench/target/criterion`.
 
-You can open the benchmark automatically in your Browser afterwards, using `cargo aoc bench -o` 
+You can open the benchmark automatically in your Browser afterwards, using `cargo aoc bench -o`
 
 Soon(tm), you will also be able to use our (free) online platform, to compare your results with those of the community.
 
 ------
 
-Happy Advent of Code !   
+Happy Advent of Code !
