@@ -16,7 +16,7 @@ aoc-runner-internal = "0.1.0"
 toml = "0.8.8"
 chrono = "0.4.31"
 chrono-tz = "0.8.4"
-reqwest = { version = "0.11.22", default-features = false, features = ["blocking", "rustls"] }
+reqwest = { version = "0.11.22", default-features = false, features = ["blocking", "rustls-tls"] }
 webbrowser = "0.8.12"
 directories = "5.0.1"
 clap = { version = "4.4.8", features = ["derive"] }
