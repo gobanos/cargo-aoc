@@ -2,14 +2,14 @@ mod app;
 mod args;
 mod credentials;
 mod date;
-mod project;
 mod errors;
+mod project;
 
 use aoc_runner_internal::{Day, Part};
 use app::{execute_bench, execute_credentials, execute_default, execute_input};
 
 use crate::args::args_without_aoc;
-use clap::Parser;
+use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -37,19 +37,20 @@ pub struct Cli {
     #[clap(long, short)]
     generate: bool,
 
-    #[clap(subcommand)]
+    #[command(subcommand)]
     subcmd: Option<SubCommands>,
 }
 
-#[derive(Parser, Debug)]
-enum SubCommands {
+#[derive(Subcommand, Debug)]
+pub enum SubCommands {
     Bench(Bench),
+    #[command(subcommand)]
     Credentials(Credentials),
     Input(Input),
 }
 
 /// Runs the benchmark for the last day (or a given day)
-#[derive(Parser, Debug)]
+#[derive(Args, Debug)]
 pub struct Bench {
     /// Specifies the day. Defaults to last implemented.
     #[clap(short, long)]
@@ -77,9 +78,15 @@ pub struct Bench {
 }
 
 /// Sets the session cookie
-#[derive(Parser, Debug)]
-pub struct Credentials {
-    set: Option<String>,
+#[derive(Subcommand, Debug)]
+pub enum Credentials {
+    Get,
+    Set(SetCredentials),
+}
+
+#[derive(Args, Debug)]
+pub struct SetCredentials {
+    token: String,
 }
 
 /// Downloads the input for today (or a given day)

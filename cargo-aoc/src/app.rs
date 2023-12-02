@@ -1,5 +1,6 @@
 use crate::{
     credentials::CredentialsManager, date, project::ProjectManager, Bench, Credentials, Input,
+    SetCredentials,
 };
 use aoc_runner_internal::{Day, Part};
 use date::AOCDate;
@@ -23,12 +24,15 @@ const CARGO_AOC_USER_AGENT: &str = "github.com/gobanos/cargo-aoc by gregory.oban
 pub fn execute_credentials(args: &Credentials) {
     let mut creds_manager = CredentialsManager::new();
 
-    if let Some(new_session) = &args.set {
-        // Tries to set the session token
-        match creds_manager.set_session_token(new_session.to_owned()) {
-            Ok(()) => println!("Credentials sucessfully changed!"),
-            Err(e) => println!("Error changing credentials: {}", e),
+    match args {
+        Credentials::Set(SetCredentials { token: new_token }) => {
+            // Tries to set the session token
+            match creds_manager.set_session_token(new_token.to_owned()) {
+                Ok(()) => println!("Credentials sucessfully changed!"),
+                Err(e) => println!("Error changing credentials: {}", e),
+            }
         }
+        Credentials::Get => (),
     }
 
     // Displays the stored session token
@@ -42,7 +46,7 @@ pub fn execute_credentials(args: &Credentials) {
 pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
     // Gets the token or exit if it's not referenced.
     let token = CredentialsManager::new().get_session_token().expect(
-        "Error: you need to setup your AOC token using \"cargo aoc credentials {token}\"",
+        "Error: you need to setup your AOC token using \"cargo aoc credentials set {token}\"",
     );
 
     let pm = ProjectManager::new()?;
