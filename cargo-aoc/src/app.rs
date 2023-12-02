@@ -116,7 +116,7 @@ pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
 }
 
 fn update_lib_rs(day: u32, pm: &ProjectManager) -> Result<(), Box<dyn Error>> {
-    let lib_rs_path = dbg!(Path::new(pm.lib_path.as_deref().unwrap_or("src/lib.rs")));
+    let lib_rs_path = Path::new(pm.lib_path.as_deref().unwrap_or("src/lib.rs"));
     if !lib_rs_path.exists() {
         Err("lib.rs does not exist!")?
     }
