@@ -123,7 +123,7 @@ When running your solution using `cargo aoc`, said result will then get printed 
 
 # Downloading your input manually
 
-`cargo aoc input` will download an input and store it in `input/{year}/day_{day}.txt`. 
+`cargo aoc input` will download an input and store it in `input/{year}/day{day}.txt`. 
 
 Please note that by default, we're taking today's date as the argument. Of course, you can change this using : `cargo aoc input -d {day} -y {year}`
 
