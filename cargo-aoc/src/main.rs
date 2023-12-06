@@ -49,7 +49,7 @@ enum SubCommands {
 }
 
 /// Runs the benchmark for the last day (or a given day)
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 pub struct Bench {
     /// Specifies the day. Defaults to last implemented.
     #[clap(short, long)]
@@ -76,6 +76,17 @@ pub struct Bench {
     profile: bool,
 }
 
+impl Bench {
+    /// Cascade --day/--part/--input from the root command to the bench command
+    fn cascade(&self, cli: &Cli) -> Self {
+        let mut bench = (*self).clone();
+        bench.day = self.day.or(cli.day);
+        bench.part = self.part.or(cli.part);
+        bench.input = bench.input.or_else(|| cli.input.clone());
+        bench
+    }
+}
+
 /// Sets the session cookie
 #[derive(Parser, Debug)]
 pub struct Credentials {
@@ -83,7 +94,7 @@ pub struct Credentials {
 }
 
 /// Downloads the input for today (or a given day)
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone, Copy)]
 pub struct Input {
     /// Specifies the day. Defaults to today's date.
     #[clap(short, long)]
@@ -102,20 +113,29 @@ pub struct Input {
     generate: bool,
 }
 
+impl Input {
+    /// Cascade --day from the root command to the bench command
+    fn cascade(&self, cli: &Cli) -> Self {
+        let mut input = (*self).clone();
+        input.day = self.day.or(cli.day);
+        input
+    }
+}
+
 fn main() {
     let cli = Cli::parse_from(args_without_aoc());
 
-    let Some(subcommand) = cli.subcmd else {
+    let Some(ref subcommand) = cli.subcmd else {
         return execute_default(&cli).unwrap();
     };
 
     match subcommand {
-        SubCommands::Bench(arg) => execute_bench(&arg),
+        SubCommands::Bench(arg) => execute_bench(&arg.cascade(&cli)),
         SubCommands::Credentials(arg) => {
             execute_credentials(&arg);
             Ok(())
         }
-        SubCommands::Input(arg) => execute_input(&arg),
+        SubCommands::Input(arg) => execute_input(&arg.cascade(&cli)),
     }
     .unwrap()
 }
