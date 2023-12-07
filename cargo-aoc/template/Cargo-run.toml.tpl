@@ -1,3 +1,5 @@
+[workspace]
+
 [package]
 name = "aoc-autobuild"
 version = "0.3.0"
