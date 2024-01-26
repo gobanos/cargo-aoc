@@ -259,7 +259,7 @@ impl AOCApp {
         .replace(
             "{PROFILE}",
             if args.is_present("profile") {
-                "[profile.release]\ndebug = true"
+                "debug = true\n"
             } else {
                 ""
             },
