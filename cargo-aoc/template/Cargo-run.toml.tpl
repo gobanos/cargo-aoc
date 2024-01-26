@@ -7,4 +7,7 @@ authors = ["Grégory Obanos <gregory.obanos@gmail.com>"]
 {CRATE_NAME} = { path = "../../.." }
 aoc-runner = "0.2.2"
 
+[profile.release]
+incremental = true
+lto = false
 {PROFILE}
