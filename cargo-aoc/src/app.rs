@@ -41,9 +41,9 @@ pub fn execute_credentials(args: &Credentials) {
 /// Executes the "input" subcommand of the app
 pub fn execute_input(args: &Input) -> Result<(), Box<dyn Error>> {
     // Gets the token or exit if it's not referenced.
-    let token = CredentialsManager::new().get_session_token().expect(
-        "Error: you need to setup your AOC token using \"cargo aoc credentials {token}\"",
-    );
+    let token = CredentialsManager::new()
+        .get_session_token()
+        .expect("Error: you need to setup your AOC token using \"cargo aoc credentials {token}\"");
 
     let pm = ProjectManager::new()?;
 

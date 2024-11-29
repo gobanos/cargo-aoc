@@ -14,18 +14,25 @@ fn part2(input: &str) -> String {
     todo!()
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse("<EXAMPLE>")), "<RESULT>");
+        let input = "";
+        let output = "";
+
+        let input = parse(input);
+        assert_eq!(part1(input), output);
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
+        let input = "";
+        let output = "";
+
+        let input = parse(input);
+        assert_eq!(part2(input), output);
     }
 }
