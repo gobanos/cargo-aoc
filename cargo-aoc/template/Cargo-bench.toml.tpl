@@ -1,3 +1,5 @@
+[workspace]
+
 [package]
 name = "aoc-autobench"
 version = "0.3.0"
