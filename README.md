@@ -26,11 +26,11 @@ You will need to find your session token for the AoC in order for cargo-aoc to w
 * Firefox: "Storage" tab, Cookies, and copy the "Value" field of the `session` cookie.
 * Google Chrome / Chromium: "Application" tab, Cookies, and copy the "Value" field of the `session` cookie.
 
-Once you have it, simply run : `cargo aoc credentials -s {token}`
+Once you have it, simply run: `cargo aoc credentials {token}`
 
-You're now ready to start coding ! 
+You're now ready to start coding! 
 
-NOTE: If for some reason your token has changed, dont forget to change it back. 
+NOTE: If for some reason your token has changed, don't forget to change it back. 
 
 `cargo aoc credentials` will show the currently stored user token
 
@@ -47,7 +47,7 @@ year of the AoC puzzles being solved.
 When implementing a solution for a day, you have to provide functions and tag them accordingly.
 A function is either a **solver** or a **generator**. 
 
-Those two types of functions are being executed and benchmarked seperately. Lets have a closer look : 
+Those two types of functions are being executed and benchmarked separately. Lets have a closer look : 
 
 ### Generator functions
 
