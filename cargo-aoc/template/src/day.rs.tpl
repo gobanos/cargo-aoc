@@ -19,13 +19,15 @@ fn part2(input: &str) -> String {
 mod tests {
     use super::*;
 
+    const INPUT: &str = "<EXAMPLE>";
+
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse("<EXAMPLE>")), "<RESULT>");
+        assert_eq!(part1(&parse(&INPUT)), "<RESULT>");
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
+        assert_eq!(part2(&parse(&INPUT)), "<RESULT>");
     }
 }
