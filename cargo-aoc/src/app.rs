@@ -536,8 +536,14 @@ pub fn execute_bench(args: &Bench) -> Result<(), Box<dyn error::Error>> {
     )
     .expect("failed to write src/aoc_benchmark.rs");
 
+    let mut bench_args = vec!["bench".to_owned()];
+    if !args.extra_args.is_empty() {
+        bench_args.push("--".to_owned());
+        bench_args.extend(args.extra_args.clone().into_iter());
+    }
+
     let status = process::Command::new("cargo")
-        .args(["bench"])
+        .args(bench_args)
         .current_dir("target/aoc/aoc-autobench")
         .spawn()
         .expect("Failed to run cargo")
