@@ -74,6 +74,11 @@ pub struct Bench {
     /// Add debug info for profiling tools.
     #[clap(long)]
     profile: bool,
+
+    /// Additional arguments passed to the bencher command line.
+    #[clap(last = true)]
+    extra_args: Vec<String>,
+
 }
 
 /// Sets the session cookie
